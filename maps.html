@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="Concept Maps — visual summaries for all 19 sections of LPI Linux Essentials 010-160, from the official PDF.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concept Maps — LPI 010-160</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐧</text></svg>">
+<link rel="stylesheet" href="style.css">
+<style>
+/* ── Maps-specific styles ────────────────────────────────────── */
+.maps-intro {
+  font-size: 13px;
+  color: var(--sub);
+  line-height: 1.7;
+}
+
+.topic-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.topic-jump a {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 2px solid transparent;
+  transition: opacity .15s;
+}
+.topic-jump a:hover { opacity: .75; }
+
+/* Section accordion */
+.section-block {
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.section-toggle {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 14px 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  font-size: var(--a11y-font-size);
+  color: var(--txt);
+  font-weight: 700;
+  transition: background .15s;
+}
+.section-toggle:hover { background: rgba(0,0,0,.04); }
+.section-toggle .s-num {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 20px;
+  flex-shrink: 0;
+  letter-spacing: .5px;
+}
+.section-toggle .s-title { flex: 1; }
+.section-toggle .s-arrow {
+  font-size: 14px;
+  color: var(--sub);
+  transition: transform .2s;
+  flex-shrink: 0;
+}
+.section-toggle[aria-expanded="true"] .s-arrow { transform: rotate(90deg); }
+
+.section-body {
+  display: none;
+  padding: 0 18px 18px;
+  border-top: 1.5px solid var(--border);
+}
+.section-body.open { display: block; }
+
+/* Mind map grid */
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.map-node {
+  border-radius: 10px;
+  padding: 13px 15px;
+  border: 1.5px solid transparent;
+}
+.map-node .node-icon { font-size: 18px; margin-bottom: 6px; }
+.map-node .node-title {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  margin-bottom: 8px;
+}
+.map-node ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.map-node ul li {
+  font-size: 12px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+  line-height: 1.4;
+}
+.map-node ul li:last-child { border-bottom: none; }
+.map-node ul li code {
+  font-family: 'SF Mono','Cascadia Code','Fira Code',monospace;
+  font-size: 11px;
+  background: rgba(0,0,0,.08);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Node color families */
+.node-concepts  { background: #E3F2FD; border-color: #90CAF9; color: #0D47A1; }
+.node-commands  { background: #E8F5E9; border-color: #A5D6A7; color: #1B5E20; }
+.node-files     { background: #FFF3E0; border-color: #FFCC80; color: #E65100; }
+.node-traps     { background: #FCE4EC; border-color: #F48FB1; color: #880E4F; }
+.node-remember  { background: #F3E5F5; border-color: #CE93D8; color: #4A148C; }
+.node-compare   { background: #E0F2F1; border-color: #80CBC4; color: #004D40; }
+
+/* Dark mode — map nodes */
+[data-contrast="dark"] .node-concepts  { background: #0D253A; border-color: #1565C0; color: #90CAF9; }
+[data-contrast="dark"] .node-commands  { background: #0D2A12; border-color: #2E7D32; color: #A5D6A7; }
+[data-contrast="dark"] .node-files     { background: #2A1A00; border-color: #E65100; color: #FFCC80; }
+[data-contrast="dark"] .node-traps     { background: #2A0D18; border-color: #C2185B; color: #F48FB1; }
+[data-contrast="dark"] .node-remember  { background: #1A0A2A; border-color: #7B1FA2; color: #CE93D8; }
+[data-contrast="dark"] .node-compare   { background: #00201E; border-color: #00695C; color: #80CBC4; }
+[data-contrast="dark"] .map-node ul li { border-color: rgba(255,255,255,.08); color: #D0CEC9; }
+[data-contrast="dark"] .map-node ul li code { background: rgba(255,255,255,.1); color: #FFD180; }
+[data-contrast="dark"] .section-toggle { color: var(--txt); }
+[data-contrast="dark"] .section-toggle:hover { background: rgba(255,255,255,.05); }
+
+/* High contrast — map nodes */
+[data-contrast="high"] .node-concepts,
+[data-contrast="high"] .node-commands,
+[data-contrast="high"] .node-files,
+[data-contrast="high"] .node-traps,
+[data-contrast="high"] .node-remember,
+[data-contrast="high"] .node-compare  { background: #fff; border: 2px solid #000; color: #000; }
+
+/* Key term pill */
+.kw { display: inline-block; background: var(--acc); color: #fff; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: 700; margin-right: 3px; }
+
+/* Topic group header */
+.topic-group-hd {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  margin: 24px 0 10px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Expand all button */
+.expand-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.expand-row button {
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  cursor: pointer;
+  color: var(--txt);
+}
+.expand-row button:hover { background: var(--bg); }
+#mapSearch {
+  flex: 1;
+  min-width: 180px;
+  max-width: 360px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--txt);
+  font-size: 14px;
+  font-family: inherit;
+}
+#mapSearch:focus { outline: 3px solid var(--acc); outline-offset: 2px; border-color: var(--acc-dk); }
+[data-contrast="dark"] #mapSearch { background: var(--card); color: var(--txt); }
+.map-node li.match-highlight { background: var(--warn) !important; color: #fff !important; border-radius: 4px; padding: 1px 4px; }
+
+/* Legend */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 11px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.legend-dot {
+  width: 12px; height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Print/export note */
+.print-note {
+  font-size: 11px;
+  color: var(--sub);
+  text-align: right;
+  margin-bottom: 8px;
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<div id="shell" tabindex="-1"><a id="main-content"></a>
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo" aria-label="Go to Home">🐧 LPI <span>010-160</span></a>
+    <nav class="topbar-nav">
+      <a href="index.html">Home</a>
+      <a href="study.html">Study</a>
+      <a href="exam.html">Exam</a>
+      <a href="drill.html">Drill</a>
+      <a href="weak.html">Hard</a>
+      <a href="maps.html" class="active" aria-current="page">Maps</a>
+    </nav>
+  </div>
+
+  <!-- Tab description banner -->
+  <div class="tab-desc">
+    🗺️ <strong>Concept Maps</strong> — Visual summaries of every section and sub-section extracted directly from the official LPI PDF v1.6. Key concepts, commands, files, and exam traps — all in one place. Expand a section to study it.
+  </div>
+
+  <!-- Topic jump links -->
+  <div class="topic-jump" id="topicJump"></div>
+
+  <div class="expand-row">
+    <button onclick="expandAll()">▼ Expand All</button>
+    <button onclick="collapseAll()">▲ Collapse All</button>
+    <input type="search" id="mapSearch" placeholder="🔍 Search concepts, commands, files…"
+      aria-label="Search concept maps"
+      oninput="filterMaps(this.value)"
+      style="flex:1;min-width:180px;max-width:340px;padding:7px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--txt);font-size:14px">
+    <button onclick="clearMapSearch()" id="mapClearBtn" style="display:none" aria-label="Clear search">✕ Clear</button>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#90CAF9"></div> Key Concepts</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#A5D6A7"></div> Commands &amp; Tools</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#FFCC80"></div> Files &amp; Paths</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#F48FB1"></div> ⚠ Exam Traps</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#CE93D8"></div> Must Remember</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#80CBC4"></div> Comparisons</div>
+  </div>
+
+  <div id="mapsContainer" role="main" aria-live="polite" aria-label="Concept maps"></div>
+</div>
+
+<script src="questions.js"></script>
+<script src="a11y.js"></script>
+<script>
+// ── Mind map data — derived from LPI PDF v1.6 ──────────────────────────────
+const MAPS = [
+  // ══ TOPIC 1 ════════════════════════════════════════════════════════════
+  {
+    sec: '1.1', t: 1,
+    title: 'Linux Evolution and Popular Operating Systems',
+    nodes: [
+      {
+        type: 'concepts', icon: '🐧', title: 'Linux Origins',
+        items: [
+          'Started 1991 by <b>Linus Torvalds</b>',
+          'Inspired by Unix (AT&T, 1970s)',
+          'Designed for x86 platform',
+          'Free & Open Source: freely redistributable',
+          'Kernel = core of the OS'
+        ]
+      },
+      {
+        type: 'concepts', icon: '📦', title: 'Major Distributions',
+        items: [
+          '<b>Debian</b> → Ubuntu, Linux Mint',
+          '<b>Red Hat</b> → RHEL, CentOS, Fedora',
+          '<b>SUSE</b> → openSUSE (YaST tool)',
+          'Ubuntu <b>LTS</b> = Long-Term Support (5 yr)',
+          'Fedora / non-LTS Ubuntu = 9-month cycle',
+          'RHEL = up to 10-year support'
+        ]
+      },
+      {
+        type: 'compare', icon: '⚖️', title: 'Package Formats',
+        items: [
+          '<b>DEB</b> (.deb) → Debian/Ubuntu family',
+          '<b>RPM</b> (.rpm) → Red Hat/SUSE family',
+          '<code>dpkg</code>, <code>apt</code> = Debian tools',
+          '<code>rpm</code>, <code>yum</code>, <code>dnf</code> = Red Hat tools',
+          '<code>zypper</code> = openSUSE tool'
+        ]
+      },
+      {
+        type: 'commands', icon: '☁️', title: 'Embedded & Cloud',
+        items: [
+          'Raspberry Pi → <b>ARM</b> processor, SD card boot',
+          'Raspbian = Debian for RPi',
+          'Android = <b>modified Linux kernel</b> (Google, 2005)',
+          'Linux runs <b>90%</b> of public cloud (2017)',
+          'IaaS = Infrastructure as a Service',
+          'Cloud: pre-prepared images, provisioned in minutes'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          'Android ≠ standard Linux distro (modified kernel)',
+          'CentOS = free RHEL rebuild (not a fork)',
+          'Raspberry Pi has NO internal hard disk — SD card only',
+          'IBM acquired Red Hat in 2019',
+          'openSUSE tool = YaST, not apt or yum'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '1.2', t: 1,
+    title: 'Major Open Source Applications',
+    nodes: [
+      {
+        type: 'commands', icon: '📦', title: 'Package Management',
+        items: [
+          '<code>apt-get install pkg</code> — install (Debian)',
+          '<code>apt-get remove pkg</code> — remove (keeps config)',
+          '<code>apt-get purge pkg</code> — remove + config files',
+          '<code>dpkg -i pkg.deb</code> — install local .deb',
+          '<code>yum install pkg</code> / <code>dnf install pkg</code> — Red Hat',
+          '<code>rpm -i pkg.rpm</code> — install local .rpm',
+          '<code>rpm -e pkg</code> — remove RPM package'
+        ]
+      },
+      {
+        type: 'concepts', icon: '🖥️', title: 'Desktop Applications',
+        items: [
+          '<b>LibreOffice Writer</b> — word processor',
+          '<b>LibreOffice Calc</b> — spreadsheets',
+          '<b>LibreOffice Impress</b> — presentations',
+          '<b>LibreOffice Draw</b> — vector graphics',
+          '<b>Thunderbird</b> — email client',
+          '<b>Firefox</b> — browser; <b>Chromium</b> = Chrome open-source base'
+        ]
+      },
+      {
+        type: 'concepts', icon: '🎨', title: 'Multimedia Tools',
+        items: [
+          '<b>GIMP</b> — bitmap image editing',
+          '<b>Inkscape</b> — SVG vector graphics',
+          '<b>ImageMagick</b> — CLI image conversion (<code>convert</code>)',
+          '<b>Blender</b> — 3D modeling & animation',
+          '<b>VLC</b> — media player',
+          '<b>Audacity</b> — audio editing'
+        ]
+      },
+      {
+        type: 'concepts', icon: '🌐', title: 'Server Software',
+        items: [
+          '<b>Apache</b> (httpd) & <b>NGINX</b> — web servers',
+          '<b>Postfix</b> / Sendmail — email servers (SMTP)',
+          '<b>Dovecot</b> — IMAP/POP3 mail retrieval',
+          '<b>Samba</b> — Windows file sharing (SMB/CIFS)',
+          '<b>NFS</b> — Linux-to-Linux file sharing',
+          '<b>MariaDB</b> / <b>PostgreSQL</b> — relational databases',
+          '<b>SQLite</b> — embedded SQL database'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          '<code>purge</code> removes config; <code>remove</code> keeps config',
+          'Chromium ≠ Chrome (Chrome adds proprietary parts)',
+          'GIMP = bitmap; Inkscape = vector (SVG)',
+          'Samba = Linux↔Windows; NFS = Linux↔Linux',
+          'ImageMagick uses <code>convert</code> command from CLI'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '1.3', t: 1,
+    title: 'Open Source Software and Licensing',
+    nodes: [
+      {
+        type: 'concepts', icon: '🆓', title: 'Free Software (FSF)',
+        items: [
+          'Freedom 0: run for any purpose',
+          'Freedom 1: study & modify (source access)',
+          'Freedom 2: redistribute copies',
+          'Freedom 3: distribute modified versions',
+          '"Free" = <b>freedom</b>, not price (libre ≠ gratis)'
+        ]
+      },
+      {
+        type: 'compare', icon: '⚖️', title: 'License Types',
+        items: [
+          '<b>GPL v2/v3</b> — copyleft, derivatives must be GPL',
+          '<b>LGPL</b> — weaker copyleft (libraries)',
+          '<b>AGPL</b> — GPL + network use triggers disclosure',
+          '<b>MIT / BSD</b> — permissive, few restrictions',
+          '<b>Apache 2.0</b> — permissive + patent grant',
+          '<b>CC</b> — Creative Commons (non-software, docs)'
+        ]
+      },
+      {
+        type: 'concepts', icon: '🔄', title: 'Copyleft vs Permissive',
+        items: [
+          '<b>Copyleft</b>: must share modifications (viral)',
+          '<b>Permissive</b>: can use in proprietary software',
+          'GPL is strongest copyleft',
+          'BSD/MIT = most permissive',
+          'Apache adds patent termination clause'
+        ]
+      },
+      {
+        type: 'concepts', icon: '💼', title: 'Business Models',
+        items: [
+          'Dual licensing (open + proprietary)',
+          'Support & consulting (Red Hat model)',
+          'SaaS: sell service, not license',
+          'Open core: free base + paid features',
+          'Bounties & crowdfunding'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          'LGPL ≠ GPL — LGPL allows proprietary linking',
+          'AGPL covers network use (SaaS loophole)',
+          'Creative Commons is NOT for software',
+          'Open Source ≠ Free Software (similar but distinct)',
+          'MIT/BSD code CAN appear in proprietary products'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '1.4', t: 1,
+    title: 'ICT Skills and Working in Linux',
+    nodes: [
+      {
+        type: 'concepts', icon: '🖥️', title: 'Linux Interfaces',
+        items: [
+          '<b>CLI</b> — Command Line Interface (shell/terminal)',
+          '<b>GUI</b> — Graphical User Interface',
+          '<b>GNOME</b> — popular Linux desktop environment',
+          '<b>KDE Plasma</b> — another major desktop',
+          '<b>Xfce</b>, <b>LXDE</b> — lightweight DEs',
+          'SSH — remote CLI access'
+        ]
+      },
+      {
+        type: 'concepts', icon: '🔒', title: 'Privacy & Encryption',
+        items: [
+          '<b>Cookies</b> — browser tracking files',
+          '<b>DoNotTrack</b> — browser opt-out header',
+          '<b>TLS/SSL</b> — encrypts web traffic (HTTPS)',
+          '<b>GPG/PGP</b> — asymmetric file/email encryption',
+          '<b>SSH</b> — encrypted remote access',
+          '<b>VPN</b> — encrypts network tunnel'
+        ]
+      },
+      {
+        type: 'compare', icon: '🌐', title: 'Encryption Concepts',
+        items: [
+          '<b>Symmetric</b>: one key for encrypt+decrypt',
+          '<b>Asymmetric</b>: public key encrypts, private decrypts',
+          'Public key = share freely',
+          'Private key = never share',
+          'HTTPS uses TLS (formerly SSL)'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          'GNOME/KDE are DEs, not window managers',
+          'SSL is deprecated → TLS is current',
+          'GPG = GNU Privacy Guard (free GPL tool)',
+          'DoNotTrack is advisory only — sites can ignore it',
+          'VPN ≠ anonymous (provider can still see traffic)'
+        ]
+      }
+    ]
+  },
+
+  // ══ TOPIC 2 ════════════════════════════════════════════════════════════
+  {
+    sec: '2.1', t: 2,
+    title: 'Command Line Basics',
+    nodes: [
+      {
+        type: 'concepts', icon: '💻', title: 'Shell Basics',
+        items: [
+          'Shell = program interpreting commands',
+          '<b>Bash</b> = Bourne Again Shell (default Linux)',
+          'Prompt: <code>user@host:~$</code> ($ = normal, # = root)',
+          'Command structure: <code>command [options] [args]</code>',
+          'Short opts: <code>-l</code>; Long opts: <code>--long</code>',
+          'Multiple short: <code>-la</code> = <code>-l -a</code>'
+        ]
+      },
+      {
+        type: 'commands', icon: '📋', title: 'Command Types',
+        items: [
+          '<b>Builtin</b>: built into shell (<code>cd</code>, <code>echo</code>, <code>pwd</code>)',
+          '<b>External</b>: programs on disk (<code>ls</code>, <code>grep</code>)',
+          '<code>type cmd</code> — show command type',
+          '<code>which cmd</code> — find executable path',
+          '<code>echo $PATH</code> — show search path',
+          'Commands separated by <code>;</code> run sequentially'
+        ]
+      },
+      {
+        type: 'concepts', icon: '🔤', title: 'Quoting Rules',
+        items: [
+          '<b>No quotes</b>: word splitting & glob expansion',
+          '<b>Double quotes</b> <code>"…"</code>: allow <code>$VAR</code> expansion',
+          '<b>Single quotes</b> <code>\'…\'</code>: literal, no expansion',
+          '<b>Backslash</b> <code>\\</code>: escape next character',
+          'Backtick <code>`cmd`</code> = <code>$(cmd)</code> (command subst.)'
+        ]
+      },
+      {
+        type: 'concepts', icon: '📌', title: 'Variables',
+        items: [
+          '<code>VAR=value</code> — assign (no spaces!)',
+          '<code>$VAR</code> or <code>${VAR}</code> — expand',
+          '<code>export VAR</code> — make available to child processes',
+          '<b>PATH</b> — directories searched for commands',
+          '<b>HOME</b> — user\'s home directory',
+          '<b>USER</b> — current username',
+          '<b>PS1</b> — prompt string'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          '<code>VAR=val</code> works; <code>VAR = val</code> fails (spaces!)',
+          'Single quotes prevent ALL expansion (even \\)',
+          '<code>echo $VAR</code> vs <code>echo \'$VAR\'</code> — very different',
+          'PATH doesn\'t include current dir by default (security)',
+          '<code>export</code> required for env vars in subshells'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '2.2', t: 2,
+    title: 'Using the Command Line to Get Help',
+    nodes: [
+      {
+        type: 'commands', icon: '📚', title: 'Help Commands',
+        items: [
+          '<code>man cmd</code> — manual page',
+          '<code>man -k keyword</code> — search man pages',
+          '<code>apropos keyword</code> — same as <code>man -k</code>',
+          '<code>whatis cmd</code> — one-line description',
+          '<code>cmd --help</code> — brief help',
+          '<code>info cmd</code> — GNU info documentation'
+        ]
+      },
+      {
+        type: 'concepts', icon: '📖', title: 'Man Page Sections',
+        items: [
+          '1 — User commands',
+          '2 — System calls',
+          '3 — Library functions',
+          '4 — Special files (/dev)',
+          '5 — File formats (/etc/passwd)',
+          '6 — Games',
+          '7 — Miscellaneous',
+          '8 — Admin/root commands'
+        ]
+      },
+      {
+        type: 'commands', icon: '🔍', title: 'Locating Files',
+        items: [
+          '<code>which cmd</code> — path of executable',
+          '<code>whereis cmd</code> — binary + man + source',
+          '<code>locate pattern</code> — fast DB search',
+          '<code>find path -name "*.txt"</code> — real-time search',
+          '<code>find / -type f -name file</code> — search all files',
+          '<code>find . -type d</code> — find directories only',
+          '<code>updatedb</code> — refresh locate database'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          '<code>locate</code> uses stale DB; <code>find</code> = real-time',
+          '<code>apropos</code> = <code>man -k</code> (same thing)',
+          '<code>man 5 passwd</code> = file format; <code>man 1 passwd</code> = command',
+          '<code>whereis</code> finds binary + docs; <code>which</code> = only binary',
+          'Man page navigation: <code>q</code> quit, <code>/</code> search, <code>n</code> next'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '2.3', t: 2,
+    title: 'Using Directories and Listing Files',
+    nodes: [
+      {
+        type: 'commands', icon: '📁', title: 'Navigation Commands',
+        items: [
+          '<code>pwd</code> — print working directory',
+          '<code>cd /path</code> — change to absolute path',
+          '<code>cd dir</code> — change to relative path',
+          '<code>cd ..</code> — go up one level',
+          '<code>cd ~</code> or <code>cd</code> — go to home',
+          '<code>cd -</code> — go to previous directory'
+        ]
+      },
+      {
+        type: 'commands', icon: '📋', title: 'Listing Files (ls)',
+        items: [
+          '<code>ls</code> — basic listing',
+          '<code>ls -l</code> — long format (permissions, size, date)',
+          '<code>ls -a</code> — show hidden files (starting with .)',
+          '<code>ls -la</code> — long + hidden',
+          '<code>ls -R</code> — recursive (all subdirectories)',
+          '<code>ls -h</code> — human-readable sizes',
+          '<code>ls -t</code> — sort by modification time'
+        ]
+      },
+      {
+        type: 'files', icon: '🗂️', title: 'Key Directories (FHS)',
+        items: [
+          '<code>/</code> — root of filesystem',
+          '<code>/home/user</code> — user home directories',
+          '<code>/root</code> — root user\'s home',
+          '<code>/etc</code> — system configuration files',
+          '<code>/bin</code>, <code>/usr/bin</code> — user commands',
+          '<code>/sbin</code>, <code>/usr/sbin</code> — admin commands',
+          '<code>/var</code> — variable data (logs)',
+          '<code>/tmp</code> — temporary files',
+          '<code>/dev</code> — device files',
+          '<code>/proc</code> — kernel virtual filesystem',
+          '<code>/sys</code> — kernel/hardware info',
+          '<code>/mnt</code>, <code>/media</code> — mount points'
+        ]
+      },
+      {
+        type: 'concepts', icon: '📐', title: 'Paths',
+        items: [
+          '<b>Absolute</b>: starts with <code>/</code> (from root)',
+          '<b>Relative</b>: from current directory',
+          '<code>.</code> — current directory',
+          '<code>..</code> — parent directory',
+          '<code>~</code> — home directory',
+          'Hidden files: names starting with <code>.</code>'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          'Linux is case-sensitive: <code>File</code> ≠ <code>file</code>',
+          'Hidden = starts with dot (.), not a special attribute',
+          '<code>ls</code> without <code>-a</code> hides dotfiles',
+          '<code>/root</code> ≠ <code>/</code> (root\'s home vs filesystem root)',
+          '<code>~user</code> = home of specific user'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '2.4', t: 2,
+    title: 'Creating, Moving and Deleting Files',
+    nodes: [
+      {
+        type: 'commands', icon: '📁', title: 'Directory Commands',
+        items: [
+          '<code>mkdir dir</code> — create directory',
+          '<code>mkdir -p a/b/c</code> — create nested dirs',
+          '<code>rmdir dir</code> — remove empty directory',
+          '<code>rm -r dir</code> — remove directory recursively',
+          '<code>rm -rf dir</code> — force remove (no prompts)'
+        ]
+      },
+      {
+        type: 'commands', icon: '📄', title: 'File Commands',
+        items: [
+          '<code>touch file</code> — create empty / update timestamp',
+          '<code>cp src dst</code> — copy file',
+          '<code>cp -r src/ dst/</code> — copy directory recursively',
+          '<code>mv src dst</code> — move or rename',
+          '<code>rm file</code> — delete file',
+          '<code>rm -i file</code> — interactive (confirm each)',
+          '<code>cat > file</code> — create file from stdin'
+        ]
+      },
+      {
+        type: 'concepts', icon: '🌟', title: 'Globbing (Wildcards)',
+        items: [
+          '<code>*</code> — any string (including empty)',
+          '<code>?</code> — exactly one character',
+          '<code>[abc]</code> — one of: a, b, or c',
+          '<code>[a-z]</code> — any lowercase letter',
+          '<code>[^abc]</code> — NOT a, b, or c',
+          'Example: <code>ls *.txt</code>, <code>rm file?.log</code>'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          '<code>rm</code> has NO recycle bin — permanent!',
+          '<code>mv</code> can rename AND move in one step',
+          '<code>cp</code> needs <code>-r</code> for directories',
+          '<code>mkdir -p</code> won\'t error if dir exists',
+          'Globbing is expanded by shell BEFORE command runs',
+          '<code>touch</code> on existing file = update timestamp only'
+        ]
+      }
+    ]
+  },
+
+  // ══ TOPIC 3 ════════════════════════════════════════════════════════════
+  {
+    sec: '3.1', t: 3,
+    title: 'Archiving Files on the Command Line',
+    nodes: [
+      {
+        type: 'commands', icon: '🗜️', title: 'Compression Tools',
+        items: [
+          '<code>gzip file</code> → <code>file.gz</code> (replaces original)',
+          '<code>gunzip file.gz</code> or <code>gzip -d</code> — decompress',
+          '<code>zcat file.gz</code> — view without extracting',
+          '<code>bzip2 file</code> → <code>file.bz2</code> (better ratio)',
+          '<code>bunzip2</code> / <code>bzip2 -d</code> — decompress',
+          '<code>bzcat file.bz2</code> — view without extracting',
+          '<code>xz file</code> → <code>file.xz</code> (best compression)',
+          '<code>unxz</code> / <code>xz -d</code> — decompress',
+          '<code>xzcat file.xz</code> — view without extracting'
+        ]
+      },
+      {
+        type: 'commands', icon: '📦', title: 'tar (Tape ARchive)',
+        items: [
+          '<code>tar -cf archive.tar files</code> — create',
+          '<code>tar -xf archive.tar</code> — extract',
+          '<code>tar -czf archive.tar.gz files</code> — create + gzip',
+          '<code>tar -xzf archive.tar.gz</code> — extract + gunzip',
+          '<code>tar -cjf archive.tar.bz2 files</code> — create + bzip2',
+          '<code>tar -xjf archive.tar.bz2</code> — extract + bunzip2',
+          '<code>tar -cJf archive.tar.xz files</code> — create + xz',
+          '<code>tar -tf archive.tar</code> — list contents (no extract)',
+          '<code>tar -v</code> — verbose output'
+        ]
+      },
+      {
+        type: 'commands', icon: '📁', title: 'ZIP Files',
+        items: [
+          '<code>zip archive.zip files</code> — create ZIP',
+          '<code>zip -r archive.zip dir/</code> — recursive',
+          '<code>unzip archive.zip</code> — extract',
+          '<code>unzip -l archive.zip</code> — list contents',
+          'ZIP compresses AND archives in one step'
+        ]
+      },
+      {
+        type: 'remember', icon: '🔑', title: 'tar Flag Memory Aid',
+        items: [
+          '<b>c</b>reate, e<b>x</b>tract, <b>t</b>able of contents',
+          '<b>f</b>ile (archive name — always last/near last)',
+          '<b>v</b>erbose, <b>z</b>=gzip, <b>j</b>=bzip2, <b>J</b>=xz',
+          'tar does NOT compress by itself (just archives)',
+          'Capital <b>J</b> = xz; lowercase <b>j</b> = bzip2'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          'gzip/bzip2/xz replace original file by default',
+          'tar alone = NO compression',
+          '<code>-z</code> = gzip, <code>-j</code> = bzip2, <code>-J</code> = xz (case matters!)',
+          '<code>-f</code> must be followed immediately by archive name',
+          '<code>tar -tf</code> lists WITHOUT extracting'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '3.2', t: 3,
+    title: 'Searching and Extracting Data from Files',
+    nodes: [
+      {
+        type: 'concepts', icon: '↔️', title: 'I/O Streams',
+        items: [
+          '<b>stdin</b> (0) — standard input (keyboard)',
+          '<b>stdout</b> (1) — standard output (screen)',
+          '<b>stderr</b> (2) — standard error (screen)',
+          '<code>cmd > file</code> — redirect stdout (overwrite)',
+          '<code>cmd >> file</code> — redirect stdout (append)',
+          '<code>cmd < file</code> — redirect stdin from file',
+          '<code>cmd 2> file</code> — redirect stderr',
+          '<code>cmd 2>&1</code> — stderr → stdout',
+          '<code>cmd &> file</code> — both stdout+stderr'
+        ]
+      },
+      {
+        type: 'commands', icon: '🔗', title: 'Pipes & Text Tools',
+        items: [
+          '<code>cmd1 | cmd2</code> — pipe stdout → stdin',
+          '<code>cat file</code> — display file content',
+          '<code>head -n N file</code> — first N lines (default 10)',
+          '<code>tail -n N file</code> — last N lines',
+          '<code>sort file</code> — sort lines alphabetically',
+          '<code>sort -n</code> — numeric sort; <code>-r</code> reverse',
+          '<code>wc -l file</code> — count lines',
+          '<code>wc -w</code> words; <code>wc -c</code> characters',
+          '<code>cut -d: -f1</code> — cut field 1 by delimiter :',
+          '<code>tr a-z A-Z</code> — translate/replace chars',
+          '<code>uniq</code> — remove adjacent duplicates'
+        ]
+      },
+      {
+        type: 'commands', icon: '🔍', title: 'grep',
+        items: [
+          '<code>grep pattern file</code> — find matching lines',
+          '<code>grep -i</code> — case-insensitive',
+          '<code>grep -v</code> — invert (lines NOT matching)',
+          '<code>grep -n</code> — show line numbers',
+          '<code>grep -c</code> — count matching lines',
+          '<code>grep -r pattern dir/</code> — recursive',
+          '<code>grep -E</code> — extended regex (ERE)',
+          '<code>grep -l</code> — list filenames only'
+        ]
+      },
+      {
+        type: 'concepts', icon: '🔤', title: 'Regular Expressions',
+        items: [
+          '<code>.</code> — any single character',
+          '<code>*</code> — zero or more of preceding',
+          '<code>^</code> — start of line',
+          '<code>$</code> — end of line',
+          '<code>[abc]</code> — character class',
+          '<code>[^abc]</code> — negated class',
+          '<code>\\.</code> — literal dot (escape)',
+          'ERE extras: <code>+</code> one or more, <code>?</code> zero or one, <code>|</code> or, <code>()</code> group'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          '<code>></code> overwrites; <code>>></code> appends',
+          '2>&1 must come AFTER stdout redirect',
+          'Regex <code>*</code> ≠ glob <code>*</code> (regex = zero or more of preceding)',
+          '<code>grep</code> BRE uses <code>\\+</code>; ERE (<code>-E</code>) uses <code>+</code>',
+          '<code>sort | uniq</code> — must sort first for uniq to work'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '3.3', t: 3,
+    title: 'Turning Commands into a Script',
+    nodes: [
+      {
+        type: 'concepts', icon: '📝', title: 'Script Basics',
+        items: [
+          'First line: <code>#!/bin/bash</code> (shebang)',
+          'Make executable: <code>chmod +x script.sh</code>',
+          'Run: <code>./script.sh</code> or <code>bash script.sh</code>',
+          '<code>echo "text"</code> — print to stdout',
+          '<code>echo -n</code> — no trailing newline',
+          '<code>#</code> — comment character'
+        ]
+      },
+      {
+        type: 'concepts', icon: '📌', title: 'Script Variables & Args',
+        items: [
+          '<code>$0</code> — script name',
+          '<code>$1</code>, <code>$2</code>… — positional arguments',
+          '<code>$@</code> — all arguments (as separate words)',
+          '<code>$#</code> — number of arguments',
+          '<code>$?</code> — exit code of last command',
+          '<code>shift</code> — shift args left ($2→$1, etc.)',
+          '<code>read VAR</code> — read input from user'
+        ]
+      },
+      {
+        type: 'concepts', icon: '🔀', title: 'Control Flow',
+        items: [
+          '<code>if [ cond ]; then … fi</code>',
+          '<code>elif [ cond ]; then … else … fi</code>',
+          '<code>for i in list; do … done</code>',
+          '<code>for i in $(seq 1 10); do … done</code>',
+          '<code>while [ cond ]; do … done</code>',
+          '<code>[ -f file ]</code> — file exists',
+          '<code>[ -d dir ]</code> — directory exists',
+          '<code>[ "$A" = "$B" ]</code> — string equal',
+          '<code>[ $N -eq $M ]</code> — numeric equal'
+        ]
+      },
+      {
+        type: 'remember', icon: '🔢', title: 'Test Operators',
+        items: [
+          '<code>-eq</code> equal, <code>-ne</code> not equal',
+          '<code>-lt</code> less than, <code>-gt</code> greater than',
+          '<code>-le</code> ≤, <code>-ge</code> ≥',
+          '<code>-z str</code> empty string, <code>-n str</code> non-empty',
+          '<code>-f</code> regular file, <code>-d</code> directory',
+          '<code>-r</code> readable, <code>-w</code> writable, <code>-x</code> executable',
+          'Exit 0 = success; non-zero = error'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          'Shebang must be FIRST line, no blank line before it',
+          '<code>[ $a = $b ]</code> — spaces around <code>[</code> and <code>]</code> required!',
+          'Quote variables: <code>[ "$var" = "val" ]</code> (handles spaces)',
+          '<code>$?</code> is reset after EVERY command',
+          '<code>chmod +x</code> needed to run as <code>./script.sh</code>'
+        ]
+      }
+    ]
+  },
+
+  // ══ TOPIC 4 ════════════════════════════════════════════════════════════
+  {
+    sec: '4.1', t: 4,
+    title: 'Choosing an Operating System',
+    nodes: [
+      {
+        type: 'concepts', icon: '🖥️', title: 'OS Concepts',
+        items: [
+          'OS = kernel + utilities + applications',
+          'Kernel: manages hardware, processes, memory',
+          'Shell: interface between user and kernel',
+          'Linux distributions differ in: package mgmt, target use, support cycle',
+          'Rolling release: always latest (Arch, openSUSE Tumbleweed)',
+          'Fixed release: stable versions (Ubuntu, Debian)'
+        ]
+      },
+      {
+        type: 'compare', icon: '⚖️', title: 'OS Comparison',
+        items: [
+          '<b>Linux</b>: Free/open, multi-user, CLI-first',
+          '<b>Windows</b>: Proprietary, GUI-first, registry',
+          '<b>macOS</b>: Unix-based (BSD), proprietary, Apple HW',
+          '<b>FreeBSD</b>: Unix-like, permissive BSD license',
+          'Linux kernel ≠ GNU/Linux (GNU provides userland tools)'
+        ]
+      },
+      {
+        type: 'concepts', icon: '🎯', title: 'Choosing a Distro',
+        items: [
+          'Cost & licensing concerns',
+          'Hardware support (drivers)',
+          'Support lifecycle needed',
+          'Existing team skills',
+          'Desktop vs server use case',
+          'Community vs commercial support'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          'macOS is Unix-certified, Linux is Unix-like (not certified)',
+          'GNU/Linux ≠ just Linux kernel',
+          'FreeBSD ≠ Linux (different kernel)',
+          'Rolling release = no stable version guarantee'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '4.2', t: 4,
+    title: 'Understanding Computer Hardware',
+    nodes: [
+      {
+        type: 'concepts', icon: '🖥️', title: 'Core Components',
+        items: [
+          '<b>CPU</b>: x86 (32-bit), x86-64 (64-bit), ARM',
+          '<b>RAM</b>: DDR3/DDR4 (volatile, loses on power off)',
+          '<b>Motherboard</b>: connects all components',
+          '<b>PSU</b>: Power Supply Unit',
+          '<b>BIOS</b>: old firmware; <b>UEFI</b>: modern firmware',
+          'UEFI supports Secure Boot, GPT, >2TB disks'
+        ]
+      },
+      {
+        type: 'concepts', icon: '💾', title: 'Storage',
+        items: [
+          '<b>HDD</b>: spinning disk, slower, cheaper/GB',
+          '<b>SSD</b>: flash storage, faster, more expensive',
+          '<b>NVMe</b>: SSD via PCIe bus (fastest)',
+          '<b>MBR</b>: old partition scheme (max 4 primary, <2TB)',
+          '<b>GPT</b>: modern (128 partitions, >2TB)',
+          'Device files: <code>/dev/sda</code>, <code>/dev/sdb</code>…',
+          'Partitions: <code>/dev/sda1</code>, <code>/dev/sda2</code>…'
+        ]
+      },
+      {
+        type: 'commands', icon: '🔧', title: 'Hardware Info Commands',
+        items: [
+          '<code>lscpu</code> — CPU information',
+          '<code>lsmem</code> — memory ranges',
+          '<code>lspci</code> — PCI devices',
+          '<code>lsusb</code> — USB devices',
+          '<code>lsblk</code> — block devices (disks)',
+          '<code>free -h</code> — RAM usage',
+          '<code>uname -m</code> — machine architecture',
+          '<code>uname -r</code> — kernel version',
+          '<code>uname -a</code> — all system info'
+        ]
+      },
+      {
+        type: 'files', icon: '🗂️', title: 'Device Files',
+        items: [
+          '<code>/dev/sda</code> — first SATA/SCSI disk',
+          '<code>/dev/hda</code> — old IDE disk (legacy)',
+          '<code>/dev/sda1</code> — first partition of sda',
+          '<code>/dev/sr0</code> — first optical drive',
+          '<code>/dev/tty</code> — terminal device',
+          '<code>/dev/null</code> — discard output',
+          '<code>/dev/zero</code> — source of null bytes',
+          '<code>/dev/random</code> — random data source'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          'BIOS ≠ UEFI: BIOS = MBR; UEFI = GPT (usually)',
+          'MBR max disk = 2 TB; GPT supports larger',
+          '<code>/dev/hda</code> = old IDE; <code>/dev/sda</code> = SATA/SCSI/USB',
+          'RAM is volatile; disk storage is persistent',
+          'x86 = 32-bit only; x86-64 = 64-bit (also called AMD64)'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '4.3', t: 4,
+    title: 'Where Data is Stored',
+    nodes: [
+      {
+        type: 'files', icon: '📂', title: 'Config File Locations',
+        items: [
+          '<code>/etc/</code> — system-wide configuration',
+          '<code>~/.config/</code> — user-level config (XDG)',
+          '<code>~/.bashrc</code> — bash user settings',
+          '<code>~/.bash_profile</code> / <code>~/.profile</code> — login shell',
+          '<code>/etc/environment</code> — system-wide env vars',
+          '<code>/etc/profile</code> — system-wide shell config'
+        ]
+      },
+      {
+        type: 'files', icon: '🔮', title: 'Virtual Filesystems',
+        items: [
+          '<code>/proc/</code> — kernel info (process, CPU, memory)',
+          '<code>/proc/cpuinfo</code> — CPU details',
+          '<code>/proc/meminfo</code> — memory details',
+          '<code>/proc/version</code> — kernel version',
+          '<code>/proc/PID/</code> — per-process info',
+          '<code>/sys/</code> — hardware & driver info',
+          '<code>/dev/</code> — device files (managed by udev)'
+        ]
+      },
+      {
+        type: 'commands', icon: '⚙️', title: 'Process Management',
+        items: [
+          '<code>ps</code> — list processes (current shell)',
+          '<code>ps aux</code> — all processes, detailed',
+          '<code>ps -ef</code> — all processes, full format',
+          '<code>top</code> — interactive process viewer',
+          '<code>kill PID</code> — send SIGTERM (graceful)',
+          '<code>kill -9 PID</code> — send SIGKILL (force)',
+          '<code>killall name</code> — kill by name',
+          'PID 1 = init/systemd (first process)'
+        ]
+      },
+      {
+        type: 'commands', icon: '📋', title: 'Logging',
+        items: [
+          '<code>/var/log/</code> — log directory',
+          '<code>/var/log/syslog</code> — general system log',
+          '<code>/var/log/auth.log</code> — authentication log',
+          '<code>/var/log/kern.log</code> — kernel log',
+          '<code>journalctl</code> — view systemd journal',
+          '<code>journalctl -f</code> — follow (live)',
+          '<code>journalctl -u service</code> — service log',
+          '<code>dmesg</code> — kernel ring buffer'
+        ]
+      },
+      {
+        type: 'concepts', icon: '💾', title: 'Memory Types',
+        items: [
+          '<b>RAM</b>: fast volatile memory (loses on power off)',
+          '<b>Swap</b>: disk space used as virtual RAM',
+          '<code>free -h</code> — show RAM + swap usage',
+          '<code>vmstat</code> — virtual memory statistics',
+          'swap partition vs swap file (both work)',
+          'OOM = Out Of Memory killer (Linux terminates processes)'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          '/proc and /sys are NOT on disk — kernel generates them',
+          'PID 1 = first process (init or systemd)',
+          '<code>kill</code> default = SIGTERM (15), not SIGKILL',
+          '<code>kill -9</code> cannot be caught or ignored',
+          'dmesg = boot + kernel messages, not application logs'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '4.4', t: 4,
+    title: 'Your Computer on the Network',
+    nodes: [
+      {
+        type: 'concepts', icon: '🌐', title: 'Network Layers',
+        items: [
+          '<b>Link layer</b>: Ethernet, MAC address (48-bit, HH:HH:HH:HH:HH:HH)',
+          '<b>IP layer</b>: IPv4 / IPv6',
+          '<b>Transport layer</b>: TCP (reliable), UDP (fast)',
+          '<b>Application layer</b>: HTTP, SSH, DNS…',
+          'NIC = Network Interface Card',
+          '<code>ip addr</code> / <code>ifconfig</code> — show interfaces'
+        ]
+      },
+      {
+        type: 'concepts', icon: '4️⃣', title: 'IPv4',
+        items: [
+          '32-bit address: dotted decimal (e.g. 192.168.1.1)',
+          '<b>Private ranges</b>: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16',
+          'Loopback: <b>127.0.0.1</b>',
+          'CIDR notation: /24 = 255.255.255.0',
+          'NAT: maps private→public IPs',
+          'DHCP: auto-assigns IP addresses'
+        ]
+      },
+      {
+        type: 'concepts', icon: '6️⃣', title: 'IPv6',
+        items: [
+          '128-bit address: hex groups (e.g. fe80::1)',
+          'Loopback: <b>::1</b>',
+          'Link-local: <b>fe80::/10</b>',
+          'Global unicast: <b>2000::/3</b>',
+          '<code>::</code> = consecutive groups of zero',
+          'No NAT needed (vast address space)'
+        ]
+      },
+      {
+        type: 'concepts', icon: '🌍', title: 'DNS & Sockets',
+        items: [
+          '<b>DNS</b>: translates names → IPs',
+          '<b>FQDN</b>: fully qualified domain name (host.domain.tld.)',
+          '<code>/etc/resolv.conf</code> — DNS server config',
+          '<code>/etc/hosts</code> — local name resolution (checked first)',
+          '<b>Socket</b> = IP address + port number',
+          'Well-known ports: HTTP=80, HTTPS=443, SSH=22, DNS=53'
+        ]
+      },
+      {
+        type: 'commands', icon: '🔧', title: 'Network Commands',
+        items: [
+          '<code>ip addr</code> — show IP addresses',
+          '<code>ip route</code> — show routing table',
+          '<code>ping host</code> — test connectivity',
+          '<code>ss -tuln</code> — show open ports',
+          '<code>netstat -tuln</code> — same (older)',
+          '<code>host name</code> — DNS lookup',
+          '<code>dig name</code> — detailed DNS query',
+          '<code>nmap</code> — port scanning'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          '/etc/hosts is checked BEFORE DNS (local override)',
+          '127.0.0.1 = IPv4 loopback; ::1 = IPv6 loopback',
+          'Private IPs cannot be routed on public internet',
+          'TCP = reliable (handshake); UDP = no guarantee',
+          'MAC address = layer 2 (link); IP = layer 3 (network)'
+        ]
+      }
+    ]
+  },
+
+  // ══ TOPIC 5 ════════════════════════════════════════════════════════════
+  {
+    sec: '5.1', t: 5,
+    title: 'Basic Security and Identifying User Types',
+    nodes: [
+      {
+        type: 'concepts', icon: '👤', title: 'User Types',
+        items: [
+          '<b>root</b> (UID 0): superuser, unrestricted',
+          '<b>Regular users</b>: UID 1000+ (interactive)',
+          '<b>System users</b>: UID 1-999 (services, no login)',
+          'Each user has: username, UID, GID, home dir, shell',
+          '<code>/etc/passwd</code> — user database',
+          'Every user has a primary group'
+        ]
+      },
+      {
+        type: 'commands', icon: '🔍', title: 'User Info Commands',
+        items: [
+          '<code>id</code> — show UID, GID, groups of current user',
+          '<code>id username</code> — for another user',
+          '<code>who</code> — logged-in users (current)',
+          '<code>w</code> — logged-in users + activity',
+          '<code>last</code> — login history',
+          '<code>lastb</code> — failed login attempts',
+          '<code>whoami</code> — current username',
+          '<code>groups</code> — groups current user belongs to'
+        ]
+      },
+      {
+        type: 'commands', icon: '🔐', title: 'Privilege Escalation',
+        items: [
+          '<code>su -</code> — switch to root (full env)',
+          '<code>su - user</code> — switch to user',
+          '<code>sudo cmd</code> — run as root (configured)',
+          '<code>sudo -u user cmd</code> — run as other user',
+          '<code>sudo -i</code> — interactive root shell',
+          '<code>visudo</code> — safely edit /etc/sudoers',
+          '<code>/etc/sudoers</code> — sudo configuration'
+        ]
+      },
+      {
+        type: 'files', icon: '🗂️', title: 'Access Control Files',
+        items: [
+          '<code>/etc/passwd</code> — users: name:x:UID:GID:GECOS:home:shell',
+          '<code>/etc/shadow</code> — hashed passwords (root-only)',
+          '<code>/etc/group</code> — groups: name:x:GID:members',
+          '<code>/etc/gshadow</code> — group passwords (rare)',
+          '<code>/etc/sudoers</code> — sudo rules',
+          '<code>/etc/sudoers.d/</code> — drop-in sudo configs'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          '<code>su -</code> loads full root environment; <code>su</code> keeps env',
+          'Never edit /etc/sudoers directly → use <code>visudo</code>',
+          '/etc/shadow readable ONLY by root',
+          '<code>last</code> = logins; <code>lastb</code> = bad (failed) logins',
+          'UID 0 = root, regardless of username'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '5.2', t: 5,
+    title: 'Creating Users and Groups',
+    nodes: [
+      {
+        type: 'commands', icon: '👥', title: 'User Management',
+        items: [
+          '<code>useradd username</code> — create user',
+          '<code>useradd -m</code> — create home directory',
+          '<code>useradd -s /bin/bash</code> — set shell',
+          '<code>useradd -g grp</code> — primary group',
+          '<code>useradd -G grp1,grp2</code> — supplementary groups',
+          '<code>usermod -aG group user</code> — add to group',
+          '<code>userdel username</code> — delete user',
+          '<code>userdel -r username</code> — delete user + home',
+          '<code>passwd username</code> — set password'
+        ]
+      },
+      {
+        type: 'commands', icon: '🏷️', title: 'Group Management',
+        items: [
+          '<code>groupadd groupname</code> — create group',
+          '<code>groupdel groupname</code> — delete group',
+          '<code>groupmod -n newname old</code> — rename group',
+          '<code>groups</code> — show current user\'s groups',
+          '<code>id user</code> — show UID, GID, groups'
+        ]
+      },
+      {
+        type: 'files', icon: '📄', title: '/etc/passwd Format',
+        items: [
+          '<code>name:x:UID:GID:GECOS:home:shell</code>',
+          'Field 2 = <code>x</code> (password in shadow)',
+          'GECOS = full name / description',
+          'Shell = <code>/bin/bash</code> or <code>/sbin/nologin</code>',
+          'Example: <code>alice:x:1001:1001:Alice:/home/alice:/bin/bash</code>'
+        ]
+      },
+      {
+        type: 'files', icon: '📋', title: 'Skeleton Directory',
+        items: [
+          '<code>/etc/skel/</code> — template for new home dirs',
+          'Files copied to new user\'s home on creation',
+          'Typically contains .bashrc, .bash_profile, .profile',
+          '<code>useradd -m</code> triggers copy from /etc/skel'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          '<code>useradd</code> does NOT create home by default — need <code>-m</code>',
+          '<code>usermod -aG</code>: MUST use <code>-a</code> (append) or it replaces groups',
+          '<code>userdel</code> without <code>-r</code> leaves home dir',
+          '/etc/shadow = encrypted passwords (not /etc/passwd)',
+          '<code>passwd</code> as root doesn\'t require old password'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '5.3', t: 5,
+    title: 'Managing File Permissions and Ownership',
+    nodes: [
+      {
+        type: 'concepts', icon: '🔒', title: 'Permission Basics',
+        items: [
+          'Format: <code>-rwxrwxrwx</code> (type + owner + group + other)',
+          'File types: <code>-</code>=file, <code>d</code>=dir, <code>l</code>=symlink, <code>c</code>=char dev, <code>b</code>=block dev',
+          '<b>r</b>=read(4), <b>w</b>=write(2), <b>x</b>=execute(1)',
+          'For directories: r=list, w=create/delete, x=enter',
+          '<code>ls -l</code> shows permissions'
+        ]
+      },
+      {
+        type: 'commands', icon: '🔧', title: 'chmod',
+        items: [
+          '<b>Symbolic:</b> <code>chmod u+x file</code>',
+          'u=user/owner, g=group, o=other, a=all',
+          '+add, -remove, =set exactly',
+          '<b>Numeric:</b> <code>chmod 755 file</code>',
+          '7=rwx, 6=rw-, 5=r-x, 4=r--, 0=---',
+          '<code>chmod -R 755 dir/</code> — recursive',
+          'Example: 644 = <code>rw-r--r--</code>, 755 = <code>rwxr-xr-x</code>'
+        ]
+      },
+      {
+        type: 'commands', icon: '👤', title: 'chown & chgrp',
+        items: [
+          '<code>chown user file</code> — change owner',
+          '<code>chown user:group file</code> — owner + group',
+          '<code>chown :group file</code> — group only',
+          '<code>chgrp group file</code> — change group',
+          '<code>chown -R user:grp dir/</code> — recursive',
+          'Only root can change owner'
+        ]
+      },
+      {
+        type: 'remember', icon: '🌟', title: 'Special Permissions',
+        items: [
+          '<b>SUID</b> (4): run as owner — <code>chmod 4755 file</code> → <code>-rwsr-xr-x</code>',
+          '<b>SGID</b> (2): run as group — <code>chmod 2755 file</code> → <code>-rwxr-sr-x</code>',
+          '<b>Sticky bit</b> (1): on dirs — only owner can delete — <code>chmod 1777 /tmp</code>',
+          'SUID on dirs = ignored; SGID on dirs = new files inherit group',
+          '<code>chmod 4755</code> = SUID+rwxr-xr-x'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          'SUID lowercase <code>s</code> = execute bit set; uppercase <code>S</code> = NOT set',
+          'Sticky bit on file = ignored in modern Linux',
+          '/tmp has sticky bit (1777) — check with <code>ls -ld /tmp</code>',
+          'umask is SUBTRACTED from default permissions',
+          'Default file = 666; default dir = 777 (before umask)'
+        ]
+      }
+    ]
+  },
+  {
+    sec: '5.4', t: 5,
+    title: 'Special Directories and Files',
+    nodes: [
+      {
+        type: 'files', icon: '📁', title: 'Temporary Directories',
+        items: [
+          '<code>/tmp</code> — cleared on boot/reboot',
+          '<code>/var/tmp</code> — persists across reboots',
+          '<code>/run</code> — runtime data (since boot)',
+          '<code>/run/shm</code> or <code>/dev/shm</code> — shared memory',
+          '/tmp has sticky bit (1777) — anyone can write, only owner deletes',
+          '<code>tmpfs</code> — RAM-based filesystem for /tmp'
+        ]
+      },
+      {
+        type: 'concepts', icon: '🔗', title: 'Hard Links',
+        items: [
+          'Multiple names pointing to same inode',
+          '<code>ln source linkname</code> — create hard link',
+          'Same inode number = same file data',
+          'Deleting one name doesn\'t delete data (until all links removed)',
+          'Cannot cross filesystem boundaries',
+          'Cannot hard link directories'
+        ]
+      },
+      {
+        type: 'concepts', icon: '🔗', title: 'Symbolic Links (Symlinks)',
+        items: [
+          'Pointer to another file or directory path',
+          '<code>ln -s target linkname</code> — create symlink',
+          'Can cross filesystems',
+          'Can link directories',
+          'Broken if target is deleted/moved',
+          '<code>ls -l</code> shows: <code>lrwxrwxrwx … -> target</code>'
+        ]
+      },
+      {
+        type: 'compare', icon: '⚖️', title: 'Hard vs Symbolic Links',
+        items: [
+          '<b>Hard</b>: same inode, same filesystem only',
+          '<b>Symlink</b>: different inode, any filesystem',
+          '<b>Hard</b>: survives target deletion',
+          '<b>Symlink</b>: breaks if target deleted',
+          '<b>Hard</b>: no directories; <b>Symlink</b>: can link dirs',
+          '<code>ls -i</code> — show inode numbers'
+        ]
+      },
+      {
+        type: 'traps', icon: '⚠️', title: 'Exam Traps',
+        items: [
+          '/tmp cleared on boot; /var/tmp is persistent!',
+          'Symlink permissions = 777 but actual access uses target',
+          'Hard link count in <code>ls -l</code> = number of hard links',
+          '<code>ln</code> = hard link; <code>ln -s</code> = symbolic link',
+          'Removing symlink doesn\'t affect target; removing hard link = one fewer reference'
+        ]
+      }
+    ]
+  }
+];
+
+// ── Topic color maps ──────────────────────────────────────────────────────
+const TC = TOPIC_COLORS;
+const TN = TOPIC_NAMES;
+
+// ── Node color map ────────────────────────────────────────────────────────
+const NODE_STYLE = {
+  concepts: 'node-concepts',
+  commands: 'node-commands',
+  files:    'node-files',
+  traps:    'node-traps',
+  remember: 'node-remember',
+  compare:  'node-compare'
+};
+
+// ── Build topic jump bar ──────────────────────────────────────────────────
+function buildJumpBar() {
+  const bar = document.getElementById('topicJump');
+  [1,2,3,4,5].forEach(t => {
+    const col = TC[t];
+    const a = document.createElement('a');
+    a.href = `#topic${t}`;
+    a.textContent = `T${t}: ${TN[t].replace('Topic '+t+' · ','')}`;
+    a.style.cssText = `background:${col.bg};color:${col.fg};border-color:${col.border}`;
+    bar.appendChild(a);
+  });
+}
+
+// ── Build all maps ────────────────────────────────────────────────────────
+function buildMaps() {
+  const container = document.getElementById('mapsContainer');
+  let lastTopic = 0;
+
+  MAPS.forEach(sec => {
+    // Topic group header
+    if (sec.t !== lastTopic) {
+      lastTopic = sec.t;
+      const col = TC[sec.t];
+      const hd = document.createElement('div');
+      hd.className = 'topic-group-hd';
+      hd.id = `topic${sec.t}`;
+      hd.style.cssText = `background:${col.bg};color:${col.fg};border:1.5px solid ${col.border}`;
+      hd.innerHTML = `<span>T${sec.t}</span><span>${TN[sec.t]}</span>`;
+      container.appendChild(hd);
+    }
+
+    // Section block
+    const block = document.createElement('div');
+    block.className = 'section-block';
+    block.id = `sec${sec.sec.replace('.','_')}`;
+
+    const col = TC[sec.t];
+    const toggle = document.createElement('button');
+    toggle.className = 'section-toggle';
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-controls', `body_${sec.sec.replace('.','_')}`);
+    toggle.innerHTML = `
+      <span class="s-num" style="background:${col.bg};color:${col.fg};border:1.5px solid ${col.border}">${sec.sec}</span>
+      <span class="s-title">${sec.title}</span>
+      <span class="s-arrow" aria-hidden="true">▶</span>`;
+
+    const body = document.createElement('div');
+    body.className = 'section-body';
+    body.id = `body_${sec.sec.replace('.','_')}`;
+
+    // Build node grid
+    const grid = document.createElement('div');
+    grid.className = 'map-grid';
+
+    sec.nodes.forEach(node => {
+      const nd = document.createElement('div');
+      nd.className = `map-node ${NODE_STYLE[node.type] || ''}`;
+      nd.innerHTML = `
+        <div class="node-icon">${node.icon}</div>
+        <div class="node-title">${node.title}</div>
+        <ul>${node.items.map(i => `<li>${i}</li>`).join('')}</ul>`;
+      grid.appendChild(nd);
+    });
+
+    body.appendChild(grid);
+    block.appendChild(toggle);
+    block.appendChild(body);
+    container.appendChild(block);
+
+    // Toggle handler
+    toggle.addEventListener('click', () => {
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      toggle.setAttribute('aria-expanded', String(!isOpen));
+    });
+  });
+}
+
+function expandAll() {
+  document.querySelectorAll('.section-body').forEach(b => b.classList.add('open'));
+  document.querySelectorAll('.section-toggle').forEach(t => t.setAttribute('aria-expanded','true'));
+}
+function collapseAll() {
+  document.querySelectorAll('.section-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.section-toggle').forEach(t => t.setAttribute('aria-expanded','false'));
+}
+
+function filterMaps(query) {
+  const q = query.trim().toLowerCase();
+  document.getElementById('mapClearBtn').style.display = q ? '' : 'none';
+  const blocks = document.querySelectorAll('.section-block');
+  const groupHds = document.querySelectorAll('.topic-group-hd');
+
+  if (!q) {
+    blocks.forEach(b => { b.style.display=''; });
+    groupHds.forEach(h => { h.style.display=''; });
+    document.querySelectorAll('.section-body').forEach(b => b.classList.remove('open'));
+    document.querySelectorAll('.section-toggle').forEach(t => t.setAttribute('aria-expanded','false'));
+    document.querySelectorAll('.map-node li').forEach(li => li.style.background='');
+    return;
+  }
+
+  // Expand all so text is searchable
+  expandAll();
+
+  let anyVisible = {};
+  blocks.forEach(block => {
+    const text = block.textContent.toLowerCase();
+    const matched = text.includes(q);
+    block.style.display = matched ? '' : 'none';
+
+    if (matched) {
+      // Highlight matching <li> items using CSS class
+      block.querySelectorAll('.map-node li').forEach(li => {
+        li.classList.toggle('match-highlight', li.textContent.toLowerCase().includes(q));
+      });
+    }
+  });
+
+  // Also clear highlights on hidden blocks
+  document.querySelectorAll('.section-block[style*="display: none"] .map-node li')
+    .forEach(li => li.classList.remove('match-highlight'));
+
+  // Show/hide topic group headers
+  groupHds.forEach(hd => {
+    const topicId = hd.id; // e.g. "topic1"
+    const tNum = topicId.replace('topic','');
+    const hasSibling = Array.from(blocks).some(b => {
+      const sec = b.id.replace('sec','').replace('_','.');
+      // Topic number is first digit of section
+      return sec[0] === tNum && b.style.display !== 'none';
+    });
+    hd.style.display = hasSibling ? '' : 'none';
+  });
+}
+
+function clearMapSearch() {
+  const inp = document.getElementById('mapSearch');
+  inp.value = '';
+  document.querySelectorAll('.match-highlight').forEach(li => li.classList.remove('match-highlight'));
+  filterMaps('');
+  inp.focus();
+}
+
+window.onload = () => { buildJumpBar(); buildMaps(); };
+</script>
+</body>
+</html>

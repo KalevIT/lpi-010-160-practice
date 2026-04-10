@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="Hard / Weak Spot — tricky LPI 010-160 questions: edge cases, fill-in commands, common misconceptions.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hard Questions — LPI 010-160</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐧</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<div id="shell" tabindex="-1"><a id="main-content"></a>
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo" aria-label="Go to Home">🐧 LPI <span>010-160</span></a>
+    <nav class="topbar-nav">
+      <a href="index.html">Home</a>
+      <a href="study.html">Study</a>
+      <a href="exam.html">Exam</a>
+      <a href="drill.html">Drill</a>
+      <a href="weak.html" class="active" aria-current="page">Hard</a>
+      <a href="maps.html">Maps</a>
+    </nav>
+  </div>
+
+  <!-- Tab description banner -->
+  <div class="tab-desc">
+    🔍 <strong>Hard / Weak Spot</strong> — A focused session on the trickiest questions: edge cases, traps, fill-in commands, and common misconceptions. Instant feedback. Aim for 75%+ here before the real exam.
+  </div>
+
+  <div id="configScreen">
+    <div class="card mb16">
+      <div class="section-hd mb8">Number of questions</div>
+      <div class="filters" id="countPills">
+        <button class="pill on" data-n="15" onclick="setPill(this)">15</button>
+        <button class="pill" data-n="25" onclick="setPill(this)">25</button>
+        <button class="pill" data-n="999" onclick="setPill(this)">All hard</button>
+      </div>
+      <div class="section-hd mb8 mt16">Include types</div>
+      <div class="filters" id="hardTypeFilter">
+        <button class="pill on" data-ht="all" onclick="setHardType(this,'all')">All types</button>
+        <button class="pill" data-ht="mcq" onclick="setHardType(this,'mcq')">MCQ only</button>
+        <button class="pill" data-ht="fill" onclick="setHardType(this,'fill')">✏ Fill-in only</button>
+        <button class="pill" data-ht="multi" onclick="setHardType(this,'multi')">☑ Multi-select only</button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn accent" onclick="startWeak()">▶ Start</button>
+      <a href="index.html" class="btn outline">← Home</a>
+    </div>
+  </div>
+
+  <div id="weakSession" style="display:none">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <div style="flex:1">
+        <div class="section-hd mb8" id="weakInfo"></div>
+        <div class="progress-wrap"><div class="progress-fill" id="weakProg"></div></div>
+      </div>
+      <button class="btn outline sm" onclick="backConfig()" title="Back to settings">← Config</button>
+      <button class="btn outline sm" onclick="restartWeak()" title="Restart">🔄</button>
+    </div>
+    <div id="weakQArea" role="main"></div>
+    <div class="nav-bar">
+      <button class="btn outline" id="prevBtn" onclick="weakNav(-1)" disabled>← Prev</button>
+      <div class="spacer"></div>
+      <span class="nav-info" id="weakNavInfo" aria-live="polite"></span>
+      <div class="spacer"></div>
+      <button class="btn" id="nextBtn" onclick="weakNav(1)">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script src="a11y.js"></script>
+<script>
+// Keywords to detect hard questions — covers all question types including fill-in
+const HARD_KEYWORDS=[
+  'suid','sgid','sticky bit','permission','chmod','chown','umask',
+  'regex','regular expression','agpl','lgpl','copyleft','permissive',
+  '/tmp','/var/tmp','/run','/proc','/sys',
+  'stderr','stdout','stdin','2>','1>','>>','&>',
+  'globbing','quoting','single quote','double quote',
+  'hard link','symbolic link','inode','exit code',
+  'for loop','grep -','bzip2','xz','whereis',
+  'shadow','sudoers','visudo',
+  'private ip','subnet','cidr','mac address',
+  'journalctl','shebang','#!/',
+  'fill-in','type the command','type the full','type the option',
+  'fill the option','write the command',
+  'uname','uefi','bios','swap','lscpu',
+  'auth.log','kern.log','lastb','nat','masquerad',
+  'uppercase s','lowercase s','suid bit','sgid bit',
+  '-lt','-gt','-eq','-ne','shift','$@','$#','$?',
+  'zcat','bzcat','bunzip','gunzip','unxz',
+  'fill in','type your answer'
+];
+
+function isHard(q){
+  // Build search text from all available fields (handle fill, multi, mcq safely)
+  let text = (q.q||'') + ' ' + (q.e||'');
+  if(Array.isArray(q.o)) text += ' ' + q.o.join(' ');
+  if(Array.isArray(q.fill)) text += ' ' + q.fill.join(' ');
+  if(q.type==='fill'||q.type==='multi') return true; // always hard
+  text = text.toLowerCase();
+  return HARD_KEYWORDS.some(k=>text.includes(k.toLowerCase()));
+}
+
+let pool=[],idx=0,answered={},countSetting=15,hardTypeFilter='all';
+let weakMultiSel=[];
+
+function setPill(el){
+  document.querySelectorAll('#countPills .pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');countSetting=parseInt(el.dataset.n);
+}
+function setHardType(el,t){
+  document.querySelectorAll('#hardTypeFilter .pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');hardTypeFilter=t;
+}
+
+function startWeak(){
+  let candidates=Q.filter(isHard);
+  if(hardTypeFilter==='fill') candidates=candidates.filter(q=>q.type==='fill');
+  else if(hardTypeFilter==='multi') candidates=candidates.filter(q=>q.type==='multi');
+  else if(hardTypeFilter==='mcq') candidates=candidates.filter(q=>!q.type||q.type==='mcq');
+  const hard=shuffle(candidates);
+  pool=countSetting>=999?hard:hard.slice(0,countSetting);
+  if(!pool.length){alert('No hard questions found for the selected filters.');return;}
+  idx=0;answered={};weakMultiSel=[];
+  document.getElementById('configScreen').style.display='none';
+  document.getElementById('weakSession').style.display='';
+  const nb=document.getElementById('nextBtn');if(nb)nb.style.display='';
+  renderWeak();
+}
+
+function restartWeak(){
+  pool=shuffle(pool);idx=0;answered={};weakMultiSel=[];
+  const nb=document.getElementById('nextBtn');if(nb)nb.style.display='';
+  renderWeak();
+}
+function backConfig(){document.getElementById('weakSession').style.display='none';document.getElementById('configScreen').style.display='';}
+
+function srcBadge(q){
+  if(q.src==='pdf') return '<span class="q-src-badge badge-pdf">📄 PDF</span>';
+  if(q.src==='ext') return '<span class="q-src-badge badge-ext">✓ Ext</span>';
+  return '';
+}
+
+function renderWeak(){
+  const q=pool[idx],t=q.t||1,col=TOPIC_COLORS[t],isAns=answered[idx]!==undefined;
+  document.getElementById('weakProg').style.width=((idx+1)/pool.length*100)+'%';
+  document.getElementById('weakInfo').textContent=`🔍 Hard Q${idx+1}/${pool.length} · ${Object.keys(answered).length} answered`;
+  document.getElementById('prevBtn').disabled=idx===0;
+  document.getElementById('nextBtn').textContent=idx===pool.length-1?'✓ Done':'Next →';
+  document.getElementById('weakNavInfo').textContent=`${idx+1} / ${pool.length}`;
+  const area=document.getElementById('weakQArea');area.innerHTML='';
+  const card=document.createElement('div');card.className='q-card';card.style.borderLeft='4px solid var(--warn)';
+
+  const qtype=q.type||'mcq';
+  const typeBadge=qtype==='multi'?'<span class="q-src-badge badge-multi">☑ Multi-select</span>':
+                  qtype==='fill' ?'<span class="q-src-badge badge-fill">✏ Fill-in</span>':'';
+
+  card.innerHTML=`
+    <div class="q-meta">
+      <span class="q-num">⚠ Hard Q${idx+1}</span>
+      <span class="q-badge" style="background:${col.bg};color:${col.fg}">${TOPIC_NAMES[t]}</span>
+      ${q.s?`<span class="q-badge" style="background:#F5F5F5;color:#777">${q.s}</span>`:''}
+      ${typeBadge}
+      ${srcBadge(q)}
+    </div>
+    <div class="q-text" role="heading" aria-level="2">${formatQ(q.q)}</div>
+    ${buildWeakArea(q,idx,isAns)}
+    <div class="exp ${isAns?'show':''}" role="status" aria-live="polite">
+      <div class="exp-label">💡 Explanation</div>${formatQ(q.e||'')}
+    </div>`;
+  area.appendChild(card);
+
+  if(qtype==='multi'&&!isAns){
+    const btn=document.createElement('button');
+    btn.className='btn accent mt16';btn.textContent='✓ Check Answer';
+    btn.onclick=()=>weakSubmitMulti(idx);area.appendChild(btn);
+  }
+  if(qtype==='fill'&&!isAns){
+    const inp=document.getElementById('weakFillInput');
+    if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter')weakSubmitFill(idx);});
+  }
+}
+
+function buildWeakArea(q,idx,isAns){
+  const qtype=q.type||'mcq';
+  if(qtype==='fill'){
+    if(!isAns){
+      return `<div class="fill-wrap">
+        <input type="text" id="weakFillInput" class="fill-input" placeholder="Type your answer…" autocomplete="off" spellcheck="false" aria-label="Your answer">
+        <button class="btn accent" onclick="weakSubmitFill(${idx})">Check ↵</button>
+      </div>`;
+    }
+    const ok=answered[idx].ok;
+    return `<div class="fill-wrap"><div class="fill-result ${ok?'fill-ok':'fill-wrong'}" role="status">
+      ${ok?'✅':'❌'} Your answer: <code>${escHtml(answered[idx].val)}</code>
+      ${!ok?`<br>Correct: <code>${escHtml(q.fill[0])}</code>`:''}
+    </div></div>`;
+  }
+  if(qtype==='multi'){
+    const correctSet=new Set(q.a);
+    return `<div class="opts" role="group" aria-label="Select all correct answers">
+      ${q.o.map((opt,oi)=>{
+        let cls='opt';
+        if(isAns){
+          const chosen=answered[idx]||[];
+          if(correctSet.has(oi))cls+=' correct';
+          else if(chosen.includes(oi)&&!correctSet.has(oi))cls+=' wrong';
+        }
+        return `<button class="opt-check ${cls} ${isAns?'disabled':''}" onclick="${isAns?'':('weakToggleMulti(this,'+oi+')')}" ${isAns?'disabled':''}>
+          <span class="opt-letter" aria-hidden="true">${String.fromCharCode(65+oi)}</span>
+          <span>${formatQ(opt)}</span>
+          ${isAns&&correctSet.has(oi)?'<span class="opt-tick" aria-hidden="true">✓</span>':''}
+        </button>`;
+      }).join('')}
+    </div>
+    <div class="multi-hint" role="note">${isAns?`Correct: ${[...correctSet].map(i=>String.fromCharCode(65+i)).join(', ')}`:'Select all correct options.'}</div>`;
+  }
+  // MCQ
+  return `<div class="opts" role="radiogroup">
+    ${q.o.map((opt,oi)=>`
+      <button class="opt ${isAns?(oi===q.a?'correct':(oi===answered[idx]&&oi!==q.a?'wrong':'')):''}
+        " onclick="weakAnswer(${oi})" ${isAns?'disabled':''} aria-pressed="${isAns&&oi===answered[idx]}">
+        <span class="opt-letter" aria-hidden="true">${String.fromCharCode(65+oi)}</span>
+        <span>${formatQ(opt)}</span>
+      </button>`).join('')}
+  </div>`;
+}
+
+function weakToggleMulti(el,oi){
+  el.classList.toggle('opt-selected');
+  const i=weakMultiSel.indexOf(oi);
+  if(i>=0)weakMultiSel.splice(i,1);else weakMultiSel.push(oi);
+}
+function weakSubmitMulti(i){
+  answered[i]=weakMultiSel.slice();weakMultiSel=[];
+  document.querySelector('.exp').classList.add('show');renderWeak();
+}
+function weakSubmitFill(i){
+  const inp=document.getElementById('weakFillInput');
+  const raw=inp?inp.value.trim():'';
+  const ok=pool[i].fill.some(f=>f.toLowerCase().trim()===raw.toLowerCase().trim());
+  answered[i]={val:raw,ok};weakMultiSel=[];
+  document.querySelector('.exp').classList.add('show');renderWeak();
+}
+function weakAnswer(chosen){
+  if(answered[idx]!==undefined)return;
+  answered[idx]=chosen;const q=pool[idx];
+  document.querySelectorAll('.opt').forEach((o,oi)=>{
+    o.disabled=true;
+    if(oi===q.a)o.classList.add('correct');
+    else if(oi===chosen&&chosen!==q.a)o.classList.add('wrong');
+  });
+  document.querySelector('.exp').classList.add('show');
+}
+
+function weakNav(dir){
+  const n=idx+dir;
+  if(n<0||n>=pool.length){if(dir>0&&idx===pool.length-1)weakDone();return;}
+  weakMultiSel=[];idx=n;renderWeak();window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function weakDone(){
+  let correct=0;
+  Object.entries(answered).forEach(([i,a])=>{
+    const q=pool[i];const qt=q.type||'mcq';
+    if(qt==='fill'){if(a&&a.ok)correct++;}
+    else if(qt==='multi'){const aset=new Set(q.a),uset=new Set(a||[]);if(aset.size===uset.size&&[...aset].every(x=>uset.has(x)))correct++;}
+    else if(a===q.a)correct++;
+  });
+  const pct=Math.round(correct/pool.length*100);
+  document.getElementById('weakQArea').innerHTML=`
+    <div class="card center mt8 mb16">
+      <div style="font-size:48px;font-weight:900;color:${pct>=75?'var(--green)':'var(--red)'}" aria-label="${correct} out of ${pool.length} correct">${correct}/${pool.length}</div>
+      <div style="font-size:20px;font-weight:700;margin:6px 0">${pct}% on hard questions</div>
+      <p class="muted small mb16">${pct>=75?'Strong! You handle the tricky ones.':'Review the explanations carefully — focus on what you got wrong.'}</p>
+      <div class="btn-row" style="justify-content:center">
+        <button class="btn accent" onclick="restartWeak()">🔄 Try Again</button>
+        <button class="btn outline" onclick="backConfig()">⚙ New Config</button>
+        <a href="index.html" class="btn outline">🏠 Home</a>
+      </div>
+    </div>`;
+  document.getElementById('nextBtn').style.display='none';
+}
+</script>
+</body>
+</html>

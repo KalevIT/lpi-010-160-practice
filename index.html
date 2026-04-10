@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="LPI Linux Essentials 010-160 practice simulator. 503 questions, fully offline. MCQ, Multi-select, Fill-in. Study, Exam, Drill, Hard and Concept Maps.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LPI 010-160 — Exam Practice</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐧</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<div id="shell" tabindex="-1"><a id="main-content"></a>
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo" aria-label="Go to Home">🐧 LPI <span>010-160</span></a>
+    <nav class="topbar-nav">
+      <a href="index.html" class="active" aria-current="page">Home</a>
+      <a href="study.html">Study</a>
+      <a href="exam.html">Exam</a>
+      <a href="drill.html">Drill</a>
+      <a href="weak.html">Hard</a>
+      <a href="maps.html">Maps</a>
+    </nav>
+  </div>
+
+  <div class="center mb16">
+    <h1 style="font-size:clamp(22px,5vw,34px);font-weight:900;letter-spacing:-.5px">Linux Essentials Practice</h1>
+    <p class="muted mt8">Fully offline · No internet needed · Works from USB</p>
+  </div>
+
+  <div class="stat-row" id="statsRow" style="justify-content:center" aria-live="polite" aria-label="Question bank statistics"></div>
+
+  <div class="card mb16" style="font-size:12px;color:var(--sub);border-left:4px solid var(--border);line-height:1.8">
+    <strong style="color:var(--txt)">📄 PDF Source</strong> &nbsp;·&nbsp;
+    <em>Learning Materials: Linux Essentials</em> &nbsp;·&nbsp;
+    Version: <strong>1.6</strong> (Exam code: 010-160) &nbsp;·&nbsp;
+    Author: Linux Professional Institute Inc. &nbsp;·&nbsp;
+    Published: <strong>25 February 2026</strong> &nbsp;·&nbsp;
+    <a href="https://learning.lpi.org/en/learning-materials/010-160/" target="_blank" style="color:var(--acc-dk)">learning.lpi.org ↗</a>
+  </div>
+
+  <div class="card mb16" style="font-size:13px;border-left:4px solid #00875A">
+    <strong>📋 Question sources</strong><br>
+    <span style="color:var(--sub)">
+      <span style="background:#E8F5E9;color:#1B5E20;padding:1px 7px;border-radius:8px;font-weight:700;font-size:11px">📄 PDF</span>
+      Directly derived from the official LPI Learning Material 010-160 v1.6. &nbsp;
+      <span style="background:#E3F2FD;color:#1565C0;padding:1px 7px;border-radius:8px;font-weight:700;font-size:11px">✓ Ext</span>
+      External questions validated and verified against the PDF.
+    </span>
+  </div>
+
+  <!-- Mode cards -->
+  <div class="home-grid">
+    <a href="study.html" class="home-card">
+      <div class="icon">📖</div>
+      <h3>Study Mode</h3>
+      <p>Browse questions with instant feedback and full explanations. Filter by topic, type, or source. No timer.</p>
+      <span class="tag">Self-paced · Instant feedback</span>
+    </a>
+    <a href="exam.html" class="home-card">
+      <div class="icon">⏱</div>
+      <h3>Exam Simulation</h3>
+      <p>40 questions · 60-minute timer · 75% pass threshold. Replicates the real LPI exam format. No feedback until the end.</p>
+      <span class="tag">Timed · 40 Q · 75% to pass</span>
+    </a>
+    <a href="drill.html" class="home-card">
+      <div class="icon">🎯</div>
+      <h3>Topic Drill</h3>
+      <p>Focus on a single section (e.g. only 5.3 Permissions) and drill it until you master it. Instant feedback after each answer.</p>
+      <span class="tag">Focused · One section at a time</span>
+    </a>
+    <a href="weak.html" class="home-card">
+      <div class="icon">🔍</div>
+      <h3>Hard / Weak Spot</h3>
+      <p>A curated set of tricky questions targeting common misconceptions, edge cases, and commands you must type exactly. Instant feedback.</p>
+      <span class="tag">Hard · Tricky · Fill-in included</span>
+    </a>
+    <a href="maps.html" class="home-card">
+      <div class="icon">🗺️</div>
+      <h3>Concept Maps</h3>
+      <p>Visual mind maps for all 19 sections extracted from the official PDF. Key concepts, commands, files, and exam traps — all in one compact reference.</p>
+      <span class="tag">Visual · Per section · All 19 topics</span>
+    </a>
+  </div>
+
+  <div class="section-hd mt24 mb8">Topic coverage</div>
+  <div id="topicOverview"></div>
+
+  <!-- Question type legend -->
+  <div class="section-hd mt24 mb8">Question types</div>
+  <div class="card" style="font-size:13px;line-height:1.9">
+    <div style="display:flex;flex-wrap:wrap;gap:12px">
+      <div><strong>MCQ</strong> — Single correct answer (tap to select)</div>
+      <div><span class="q-src-badge" style="background:#FFF3E0;color:#E65100;vertical-align:middle">☑ Multi-select</span> — Choose ALL correct answers, then click "Check Answer"</div>
+      <div><span class="q-src-badge" style="background:#E3F2FD;color:#1565C0;vertical-align:middle">✏ Fill-in</span> — Type the exact command or value, then press Enter or "Check"</div>
+    </div>
+  </div>
+
+  <div class="card mt16" style="font-size:13px;color:var(--sub);line-height:1.7">
+    <strong style="color:var(--txt)">♿ Accessibility</strong><br>
+    Tap the <strong>♿</strong> button (bottom-right) to adjust font size, letter/line spacing,
+    dyslexia-friendly font, high-contrast or dark mode, colorblind-safe mode, reduced motion,
+    and exam timer settings. All preferences are saved in your browser.
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script src="a11y.js"></script>
+<script>
+const byT={1:0,2:0,3:0,4:0,5:0};
+Q.forEach(q=>byT[q.t]=(byT[q.t]||0)+1);
+const pdfCount=Q.filter(q=>q.src==='pdf').length;
+const extCount=Q.filter(q=>q.src==='ext').length;
+const fillCount=Q.filter(q=>q.type==='fill').length;
+const multiCount=Q.filter(q=>q.type==='multi').length;
+
+document.getElementById('statsRow').innerHTML=`
+  <div class="stat">Total Q: <span>${Q.length}</span></div>
+  <div class="stat">📄 PDF: <span>${pdfCount}</span></div>
+  <div class="stat">✓ External: <span>${extCount}</span></div>
+  <div class="stat">✏ Fill-in: <span>${fillCount}</span></div>
+  <div class="stat">☑ Multi: <span>${multiCount}</span></div>
+  <div class="stat">Sections: <span>19</span></div>
+`;
+
+const tc=document.getElementById('topicOverview');
+tc.style.cssText='display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px';
+[1,2,3,4,5].forEach(t=>{
+  const col=TOPIC_COLORS[t];
+  const pdfQ=Q.filter(q=>q.t===t&&q.src==='pdf').length;
+  const extQ=Q.filter(q=>q.t===t&&q.src==='ext').length;
+  const div=document.createElement('div');
+  div.style.cssText=`background:${col.bg};border:1.5px solid ${col.border};border-radius:10px;padding:12px 16px`;
+  div.innerHTML=`
+    <div style="font-size:12px;font-weight:800;color:${col.fg};text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${TOPIC_NAMES[t]}</div>
+    <div style="font-size:22px;font-weight:900;color:${col.fg}">${byT[t]}</div>
+    <div style="font-size:11px;color:${col.fg};opacity:.8">${pdfQ} PDF · ${extQ} Ext · ${byT[t]-pdfQ-extQ} other</div>`;
+  tc.appendChild(div);
+});
+</script>
+</body>
+</html>

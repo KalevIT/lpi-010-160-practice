@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="Study Mode — LPI 010-160 questions with instant feedback. Filter by topic, type or source. Fully offline.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Mode — LPI 010-160</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐧</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<div id="shell" tabindex="-1"><a id="main-content"></a>
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo" aria-label="Go to Home">🐧 LPI <span>010-160</span></a>
+    <nav class="topbar-nav">
+      <a href="index.html">Home</a>
+      <a href="study.html" class="active" aria-current="page">Study</a>
+      <a href="exam.html">Exam</a>
+      <a href="drill.html">Drill</a>
+      <a href="weak.html">Hard</a>
+      <a href="maps.html">Maps</a>
+    </nav>
+  </div>
+
+  <!-- Tab description banner -->
+  <div class="tab-desc">
+    📖 <strong>Study Mode</strong> — Browse questions at your own pace with instant feedback and full explanations after every answer. Filter by topic, question type, or source. No timer.
+  </div>
+
+  <div id="configScreen">
+    <div class="card mb16">
+      <div class="section-hd mb8">Filter by topic</div>
+      <div class="filters" id="topicFilters">
+        <button class="pill on" data-t="0" onclick="toggleTopic(this)">All Topics</button>
+        <button class="pill" data-t="1" onclick="toggleTopic(this)">1 · Open Source</button>
+        <button class="pill" data-t="2" onclick="toggleTopic(this)">2 · Navigation</button>
+        <button class="pill" data-t="3" onclick="toggleTopic(this)">3 · CLI Power</button>
+        <button class="pill" data-t="4" onclick="toggleTopic(this)">4 · Linux OS</button>
+        <button class="pill" data-t="5" onclick="toggleTopic(this)">5 · Security</button>
+      </div>
+      <div class="section-hd mb8 mt16">Question type</div>
+      <div class="filters" id="typeFilters">
+        <button class="pill on" data-qtype="all" onclick="setType(this,'all')">All types</button>
+        <button class="pill" data-qtype="mcq" onclick="setType(this,'mcq')">MCQ (single choice)</button>
+        <button class="pill" data-qtype="multi" onclick="setType(this,'multi')">☑ Multi-select</button>
+        <button class="pill" data-qtype="fill" onclick="setType(this,'fill')">✏ Fill-in-blank</button>
+      </div>
+      <div class="section-hd mb8 mt16">Question source</div>
+      <div class="filters">
+        <button class="pill on" id="srcAll" onclick="setSrc('all')">All questions</button>
+        <button class="pill" id="srcPdf" onclick="setSrc('pdf')">📄 PDF only</button>
+        <button class="pill" id="srcExt" onclick="setSrc('ext')">✓ External (validated)</button>
+      </div>
+      <div class="section-hd mb8 mt16">Order</div>
+      <div class="filters">
+        <button class="pill on" id="orderRand" onclick="setOrder('random')">🔀 Random</button>
+        <button class="pill" id="orderSeq" onclick="setOrder('sequential')">📋 Sequential</button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn accent lg" onclick="startStudy()">▶ Start Studying</button>
+      <a href="index.html" class="btn outline">← Home</a>
+    </div>
+  </div>
+
+  <div id="studySession" style="display:none">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <div style="flex:1">
+        <div class="section-hd mb8" id="sessionInfo"></div>
+        <div class="progress-wrap"><div class="progress-fill" id="studyProg"></div></div>
+      </div>
+      <button class="btn outline sm" onclick="backToConfig()" title="Back to filter settings">⚙ Settings</button>
+      <button class="btn outline sm" onclick="restartStudy()" title="Restart this session">🔄 Restart</button>
+    </div>
+    <div id="qArea" role="main"></div>
+    <div class="nav-bar" id="navBar">
+      <button class="btn outline" id="prevBtn" onclick="navigate(-1)" disabled aria-label="Previous question">← Prev</button>
+      <div class="spacer"></div>
+      <span class="nav-info" id="navInfo" aria-live="polite"></span>
+      <div class="spacer"></div>
+      <button class="btn" id="nextBtn" onclick="navigate(1)" aria-label="Next question">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script src="a11y.js"></script>
+<script>
+let pool=[],idx=0,order='random',answered={},topicFilter=0,srcFilter='all',typeFilter='all';
+
+function toggleTopic(el){
+  const t=parseInt(el.dataset.t);
+  const pills=document.querySelectorAll('#topicFilters .pill');
+  if(t===0){pills.forEach(p=>p.classList.remove('on'));el.classList.add('on');topicFilter=0;}
+  else{
+    document.querySelector('#topicFilters .pill[data-t="0"]').classList.remove('on');
+    el.classList.toggle('on');
+    const active=[...document.querySelectorAll('#topicFilters .pill.on')].map(p=>parseInt(p.dataset.t)).filter(x=>x>0);
+    topicFilter=active;
+    if(!active.length){document.querySelector('#topicFilters .pill[data-t="0"]').classList.add('on');topicFilter=0;}
+  }
+}
+function setType(el,t){
+  document.querySelectorAll('#typeFilters .pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');typeFilter=t;
+}
+function setSrc(s){
+  srcFilter=s;
+  document.getElementById('srcAll').classList.toggle('on',s==='all');
+  document.getElementById('srcPdf').classList.toggle('on',s==='pdf');
+  document.getElementById('srcExt').classList.toggle('on',s==='ext');
+}
+function setOrder(o){order=o;document.getElementById('orderRand').classList.toggle('on',o==='random');document.getElementById('orderSeq').classList.toggle('on',o==='sequential');}
+
+function startStudy(){
+  let qs=Q;
+  if(topicFilter&&topicFilter.length)qs=qs.filter(q=>topicFilter.includes(q.t));
+  if(srcFilter!=='all')qs=qs.filter(q=>q.src===srcFilter);
+  if(typeFilter!=='all'){
+    if(typeFilter==='mcq')qs=qs.filter(q=>!q.type||q.type==='mcq');
+    else qs=qs.filter(q=>q.type===typeFilter);
+  }
+  if(!qs.length){alert('No questions match your filters. Try different options.');return;}
+  pool=order==='random'?shuffle(qs):[...qs];
+  idx=0;answered={};
+  document.getElementById('configScreen').style.display='none';
+  document.getElementById('studySession').style.display='';
+  render();
+}
+
+function restartStudy(){
+  pool=order==='random'?shuffle([...pool]):[...pool];
+  idx=0;answered={};
+  const nb=document.getElementById('navBar');if(nb)nb.style.display='';
+  render();
+}
+function backToConfig(){
+  multiSelected=[];
+  const nb=document.getElementById('navBar');if(nb)nb.style.display='';
+  document.getElementById('configScreen').style.display='';
+  document.getElementById('studySession').style.display='none';
+}
+
+function srcBadge(q){
+  if(q.src==='pdf') return '<span class="q-src-badge badge-pdf">📄 PDF</span>';
+  if(q.src==='ext') return '<span class="q-src-badge badge-ext">✓ Ext</span>';
+  return '';
+}
+
+function render(){
+  const q=pool[idx];if(!q)return;
+  const t=q.t||1,col=TOPIC_COLORS[t],isAns=answered[idx]!==undefined;
+  document.getElementById('studyProg').style.width=((idx+1)/pool.length*100)+'%';
+  document.getElementById('sessionInfo').textContent=`Q${idx+1}/${pool.length} · ${Object.keys(answered).length} answered`;
+  document.getElementById('prevBtn').disabled=idx===0;
+  document.getElementById('nextBtn').textContent=idx===pool.length-1?'✓ Done':'Next →';
+  document.getElementById('navInfo').textContent=`${idx+1} / ${pool.length}`;
+  const area=document.getElementById('qArea');
+  area.innerHTML='';
+  const card=document.createElement('div');
+  card.className='q-card';
+
+  const qtype=q.type||'mcq';
+  const typeBadge=qtype==='multi'?'<span class="q-src-badge badge-multi">☑ Multi-select</span>':
+                  qtype==='fill' ?'<span class="q-src-badge badge-fill">✏ Fill-in</span>':'';
+
+  card.innerHTML=`
+    <div class="q-meta">
+      <span class="q-num">Q${idx+1}</span>
+      <span class="q-badge" style="background:${col.bg};color:${col.fg}">${TOPIC_NAMES[t]}</span>
+      ${q.s?`<span class="q-badge" style="background:#F5F5F5;color:#777">${q.s}</span>`:''}
+      ${typeBadge}
+      ${srcBadge(q)}
+    </div>
+    <div class="q-text" role="heading" aria-level="2">${formatQ(q.q)}</div>
+    ${buildAnswerArea(q,idx,isAns)}
+    <div class="exp ${isAns?'show':''}" role="status" aria-live="polite">
+      <div class="exp-label">💡 Explanation</div>${formatQ(q.e||'')}
+    </div>`;
+  area.appendChild(card);
+
+  if(qtype==='multi'&&!isAns){
+    const btn=document.createElement('button');
+    btn.className='btn accent mt16';btn.textContent='✓ Check Answer';btn.id='multiSubmit';
+    btn.onclick=()=>submitMulti(idx);
+    area.querySelector('.opts').after(btn);
+  }
+  if(qtype==='fill'&&!isAns){
+    const inp=document.getElementById('fillInput');
+    if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter')submitFill(idx);});
+  }
+}
+
+function buildAnswerArea(q,idx,isAns){
+  const qtype=q.type||'mcq';
+  if(qtype==='fill'){
+    if(!isAns){
+      return `<div class="fill-wrap">
+        <input type="text" id="fillInput" class="fill-input" placeholder="Type your answer here…" autocomplete="off" spellcheck="false" aria-label="Your answer">
+        <button class="btn accent" onclick="submitFill(${idx})">Check ↵</button>
+      </div>`;
+    }else{
+      const ua=answered[idx].val;
+      const ok=answered[idx].ok;
+      return `<div class="fill-wrap">
+        <div class="fill-result ${ok?'fill-ok':'fill-wrong'}" role="status">
+          ${ok?'✅':'❌'} Your answer: <code>${escHtml(ua)}</code>
+          ${!ok?`<br>Correct: <code>${escHtml(q.fill[0])}</code>`:''}
+        </div>
+      </div>`;
+    }
+  }
+  if(qtype==='multi'){
+    const correctSet=new Set(q.a);
+    return `<div class="opts" role="group" aria-label="Select all correct answers">
+      ${q.o.map((opt,oi)=>{
+        let cls='opt';
+        if(isAns){
+          const chosen=answered[idx]||[];
+          if(correctSet.has(oi))cls+=' correct';
+          else if(chosen.includes(oi)&&!correctSet.has(oi))cls+=' wrong';
+        }
+        return `<button class="opt-check ${cls} ${isAns?'disabled':''}" onclick="${isAns?'':('toggleOpt(this,'+oi+')')}" data-oi="${oi}" ${isAns?'disabled':''} aria-pressed="${!isAns?'false':''}">
+          <span class="opt-letter" aria-hidden="true">${String.fromCharCode(65+oi)}</span>
+          <span>${formatQ(opt)}</span>
+          ${isAns&&correctSet.has(oi)?'<span class="opt-tick" aria-hidden="true">✓</span>':''}
+        </button>`;
+      }).join('')}
+    </div>
+    <div class="multi-hint" role="note">${isAns?`Correct answers: ${[...correctSet].map(i=>String.fromCharCode(65+i)).join(', ')}`:'Select all correct options, then click Check Answer.'}</div>`;
+  }
+  return `<div class="opts" role="radiogroup" aria-label="Answer options">
+    ${q.o.map((opt,oi)=>`
+      <button class="opt ${isAns?(oi===q.a?'correct':(oi===answered[idx]&&oi!==q.a?'wrong':'')):''}
+        " onclick="answer(${oi})" ${isAns?'disabled':''} aria-pressed="${isAns&&oi===answered[idx]}">
+        <span class="opt-letter" aria-hidden="true">${String.fromCharCode(65+oi)}</span>
+        <span>${formatQ(opt)}</span>
+      </button>`).join('')}
+  </div>`;
+}
+
+let multiSelected=[];
+function toggleOpt(el,oi){
+  if(el.disabled)return;
+  el.classList.toggle('opt-selected');
+  const i=multiSelected.indexOf(oi);
+  if(i>=0)multiSelected.splice(i,1);else multiSelected.push(oi);
+}
+function submitMulti(i){
+  const sel=multiSelected.slice();
+  answered[i]=sel;
+  multiSelected=[];
+  document.getElementById('multiSubmit')&&document.getElementById('multiSubmit').remove();
+  render();
+}
+function submitFill(i){
+  const q=pool[i];
+  const inp=document.getElementById('fillInput');
+  const raw=inp?inp.value.trim():'';
+  const val=raw.toLowerCase();
+  const ok=q.fill.some(f=>f.toLowerCase().trim()===val);
+  answered[i]={val:raw,ok};
+  render();
+}
+function answer(chosen){
+  if(answered[idx]!==undefined)return;
+  answered[idx]=chosen;
+  const q=pool[idx];
+  document.querySelectorAll('.opt').forEach((o,oi)=>{
+    o.disabled=true;
+    if(oi===q.a)o.classList.add('correct');
+    else if(oi===chosen&&chosen!==q.a)o.classList.add('wrong');
+  });
+  document.querySelector('.exp').classList.add('show');
+}
+
+function navigate(dir){
+  const n=idx+dir;
+  if(n<0||n>=pool.length){if(dir>0&&idx===pool.length-1)showDone();return;}
+  multiSelected=[];idx=n;render();window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function showDone(){
+  let correct=0,total=Object.keys(answered).length;
+  Object.entries(answered).forEach(([i,a])=>{
+    const q=pool[i];const qt=q.type||'mcq';
+    if(qt==='fill'){if(a.ok)correct++;}
+    else if(qt==='multi'){const aset=new Set(q.a),uset=new Set(a);if(aset.size===uset.size&&[...aset].every(x=>uset.has(x)))correct++;}
+    else{if(a===q.a)correct++;}
+  });
+  const pct=total?Math.round(correct/total*100):0;
+  document.getElementById('qArea').innerHTML=`
+    <div class="card center mt16 mb16">
+      <div style="font-size:56px;font-weight:900;color:${pct>=75?'var(--green)':'var(--red)'}" aria-label="${correct} out of ${total} correct">${correct}/${total}</div>
+      <div style="font-size:22px;font-weight:700;margin:6px 0">${pct}% correct</div>
+      <p class="muted small mb16">${pct>=75?'Great work! You\'re on track.':'Keep going — aim for 75%+'}</p>
+      <div class="btn-row" style="justify-content:center">
+        <button class="btn accent" onclick="restartStudy()">🔄 Try Again</button>
+        <button class="btn outline" onclick="backToConfig()">⚙ New Session</button>
+      </div>
+    </div>`;
+  document.getElementById('navBar').style.display='none';
+}
+</script>
+</body>
+</html>

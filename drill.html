@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="Topic Drill — focus on one LPI 010-160 section and drill until mastery. Instant feedback after each answer.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topic Drill — LPI 010-160</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐧</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<div id="shell" tabindex="-1"><a id="main-content"></a>
+  <div class="topbar">
+    <a href="index.html" class="topbar-logo" aria-label="Go to Home">🐧 LPI <span>010-160</span></a>
+    <nav class="topbar-nav">
+      <a href="index.html">Home</a>
+      <a href="study.html">Study</a>
+      <a href="exam.html">Exam</a>
+      <a href="drill.html" class="active" aria-current="page">Drill</a>
+      <a href="weak.html">Hard</a>
+      <a href="maps.html">Maps</a>
+    </nav>
+  </div>
+
+  <!-- Tab description banner -->
+  <div class="tab-desc">
+    🎯 <strong>Topic Drill</strong> — Pick ONE section and drill it until you master it. All question types included. Instant feedback after each answer. Aim for 80% before moving on.
+  </div>
+
+  <div id="configScreen">
+    <div class="section-hd mb8">Select a section to drill</div>
+    <div id="sectionGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:8px;margin-bottom:16px" role="listbox" aria-label="Select a section to drill"></div>
+    <div class="btn-row mt16">
+      <button class="btn accent" onclick="startDrill()" id="startBtn" disabled>▶ Start Drill</button>
+      <a href="index.html" class="btn outline">← Home</a>
+    </div>
+  </div>
+
+  <div id="drillSession" style="display:none">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <div style="flex:1">
+        <div class="section-hd mb8" id="drillInfo"></div>
+        <div class="progress-wrap"><div class="progress-fill" id="drillProg"></div></div>
+      </div>
+      <button class="btn outline sm" onclick="backConfig()" title="Back to section list">← Sections</button>
+      <button class="btn outline sm" onclick="restartDrill()" title="Restart this section">🔄</button>
+    </div>
+    <div id="drillQArea" role="main"></div>
+    <div class="nav-bar">
+      <button class="btn outline" id="prevBtn" onclick="drillNav(-1)" disabled>← Prev</button>
+      <div class="spacer"></div>
+      <span class="nav-info" id="drillNavInfo" aria-live="polite"></span>
+      <div class="spacer"></div>
+      <button class="btn" id="nextBtn" onclick="drillNav(1)">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script src="a11y.js"></script>
+<script>
+let selectedSection=null,pool=[],idx=0,answered={};
+let drillMultiSel=[];
+
+function buildGrid(){
+  const grid=document.getElementById('sectionGrid');
+  const countByS={};Q.forEach(q=>countByS[q.s]=(countByS[q.s]||0)+1);
+  const fillByS={};Q.filter(q=>q.type==='fill').forEach(q=>fillByS[q.s]=(fillByS[q.s]||0)+1);
+  Object.entries(SECTION_NAMES).forEach(([sec,title])=>{
+    const t=parseInt(sec),col=TOPIC_COLORS[t];
+    const count=countByS[sec]||0,fills=fillByS[sec]||0;
+    const card=document.createElement('button');
+    card.dataset.sec=sec;card.setAttribute('role','option');
+    card.setAttribute('aria-label',`${sec} ${title}, ${count} questions`);
+    card.style.cssText=`background:${col.bg};border:2px solid ${col.border};border-radius:10px;padding:13px 15px;cursor:pointer;transition:all .15s;text-align:left;width:100%;`;
+    card.innerHTML=`
+      <div style="font-size:11px;font-weight:800;color:${col.fg};margin-bottom:3px">${sec}</div>
+      <div style="font-size:13px;font-weight:700;color:${col.fg};margin-bottom:3px">${title}</div>
+      <div style="font-size:11px;color:${col.fg};opacity:.8">${count}Q${fills?` · ${fills} fill-in`:''}`;
+    card.onclick=()=>selectSection(card,sec);
+    grid.appendChild(card);
+  });
+}
+
+function selectSection(card,sec){
+  document.querySelectorAll('#sectionGrid button').forEach(c=>{c.style.outline='none';c.setAttribute('aria-selected','false');});
+  card.style.outline='3px solid var(--acc-dk)';
+  card.setAttribute('aria-selected','true');
+  selectedSection=sec;
+  document.getElementById('startBtn').disabled=false;
+}
+
+function startDrill(){
+  if(!selectedSection)return;
+  pool=shuffle(Q.filter(q=>q.s===selectedSection));
+  if(!pool.length){alert('No questions for this section.');return;}
+  idx=0;answered={};drillMultiSel=[];
+  document.getElementById('configScreen').style.display='none';
+  document.getElementById('drillSession').style.display='';
+  const nb=document.getElementById('nextBtn');if(nb)nb.style.display='';
+  renderDrill();
+}
+
+function restartDrill(){pool=shuffle(pool);idx=0;answered={};drillMultiSel=[];const nb=document.getElementById('nextBtn');if(nb)nb.style.display='';renderDrill();}
+function backConfig(){document.getElementById('drillSession').style.display='none';document.getElementById('configScreen').style.display='';}
+
+function srcBadge(q){
+  if(q.src==='pdf') return '<span class="q-src-badge badge-pdf">📄 PDF</span>';
+  if(q.src==='ext') return '<span class="q-src-badge badge-ext">✓ Ext</span>';
+  return '';
+}
+
+function renderDrill(){
+  const q=pool[idx],t=q.t||1,col=TOPIC_COLORS[t],isAns=answered[idx]!==undefined;
+  document.getElementById('drillProg').style.width=((idx+1)/pool.length*100)+'%';
+  document.getElementById('drillInfo').textContent=`${q.s} · ${SECTION_NAMES[q.s]||''} — Q${idx+1}/${pool.length}`;
+  document.getElementById('prevBtn').disabled=idx===0;
+  document.getElementById('nextBtn').textContent=idx===pool.length-1?'✓ Done':'Next →';
+  document.getElementById('drillNavInfo').textContent=`${idx+1} / ${pool.length}`;
+  const area=document.getElementById('drillQArea');area.innerHTML='';
+  const card=document.createElement('div');card.className='q-card';
+
+  const qtype=q.type||'mcq';
+  const typeBadge=qtype==='multi'?'<span class="q-src-badge badge-multi">☑ Multi-select</span>':
+                  qtype==='fill' ?'<span class="q-src-badge badge-fill">✏ Fill-in</span>':'';
+
+  card.innerHTML=`
+    <div class="q-meta">
+      <span class="q-num">Q${idx+1}</span>
+      <span class="q-badge" style="background:${col.bg};color:${col.fg}">${q.s} · ${SECTION_NAMES[q.s]||''}</span>
+      ${typeBadge}
+      ${srcBadge(q)}
+    </div>
+    <div class="q-text" role="heading" aria-level="2">${formatQ(q.q)}</div>
+    ${buildDrillArea(q,idx,isAns)}
+    <div class="exp ${isAns?'show':''}" role="status" aria-live="polite">
+      <div class="exp-label">💡 Explanation</div>${formatQ(q.e||'')}
+    </div>`;
+  area.appendChild(card);
+
+  if(qtype==='multi'&&!isAns){
+    const btn=document.createElement('button');btn.className='btn accent mt16';btn.textContent='✓ Check Answer';
+    btn.onclick=()=>drillSubmitMulti(idx);area.appendChild(btn);
+  }
+  if(qtype==='fill'&&!isAns){
+    const inp=document.getElementById('drillFillInput');
+    if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter')drillSubmitFill(idx);});
+  }
+}
+
+function buildDrillArea(q,idx,isAns){
+  const qtype=q.type||'mcq';
+  if(qtype==='fill'){
+    if(!isAns) return `<div class="fill-wrap">
+      <input type="text" id="drillFillInput" class="fill-input" placeholder="Type your answer…" autocomplete="off" spellcheck="false" aria-label="Your answer">
+      <button class="btn accent" onclick="drillSubmitFill(${idx})">Check ↵</button>
+    </div>`;
+    const ok=answered[idx].ok;
+    return `<div class="fill-wrap"><div class="fill-result ${ok?'fill-ok':'fill-wrong'}" role="status">
+      ${ok?'✅':'❌'} Your answer: <code>${escHtml(answered[idx].val)}</code>
+      ${!ok?`<br>Correct: <code>${escHtml(q.fill[0])}</code>`:''}
+    </div></div>`;
+  }
+  if(qtype==='multi'){
+    const correctSet=new Set(q.a);
+    return `<div class="opts" role="group" aria-label="Select all correct answers">
+      ${q.o.map((opt,oi)=>{
+        let cls='opt';
+        if(isAns){const chosen=answered[idx]||[];if(correctSet.has(oi))cls+=' correct';else if(chosen.includes(oi)&&!correctSet.has(oi))cls+=' wrong';}
+        return `<button class="opt-check ${cls} ${isAns?'disabled':''}" onclick="${isAns?'':('drillToggleMulti(this,'+oi+')')}" ${isAns?'disabled':''}>
+          <span class="opt-letter" aria-hidden="true">${String.fromCharCode(65+oi)}</span>
+          <span>${formatQ(opt)}</span>
+          ${isAns&&correctSet.has(oi)?'<span class="opt-tick" aria-hidden="true">✓</span>':''}
+        </button>`;
+      }).join('')}
+    </div>
+    <div class="multi-hint" role="note">${isAns?`Correct: ${[...new Set(q.a)].map(i=>String.fromCharCode(65+i)).join(', ')}`:'Select all correct options then click Check Answer.'}</div>`;
+  }
+  return `<div class="opts" role="radiogroup">
+    ${q.o.map((opt,oi)=>`
+      <button class="opt ${isAns?(oi===q.a?'correct':(oi===answered[idx]&&oi!==q.a?'wrong':'')):''}
+        " onclick="drillAnswer(${oi})" ${isAns?'disabled':''} aria-pressed="${isAns&&oi===answered[idx]}">
+        <span class="opt-letter" aria-hidden="true">${String.fromCharCode(65+oi)}</span>
+        <span>${formatQ(opt)}</span>
+      </button>`).join('')}
+  </div>`;
+}
+
+function drillToggleMulti(el,oi){el.classList.toggle('opt-selected');const i=drillMultiSel.indexOf(oi);if(i>=0)drillMultiSel.splice(i,1);else drillMultiSel.push(oi);}
+function drillSubmitMulti(i){answered[i]=drillMultiSel.slice();drillMultiSel=[];document.querySelector('.exp').classList.add('show');renderDrill();}
+function drillSubmitFill(i){
+  const inp=document.getElementById('drillFillInput');
+  const raw=inp?inp.value.trim():'';
+  const ok=pool[i].fill.some(f=>f.toLowerCase().trim()===raw.toLowerCase().trim());
+  answered[i]={val:raw,ok};drillMultiSel=[];document.querySelector('.exp').classList.add('show');renderDrill();
+}
+function drillAnswer(chosen){
+  if(answered[idx]!==undefined)return;
+  answered[idx]=chosen;const q=pool[idx];
+  document.querySelectorAll('.opt').forEach((o,oi)=>{
+    o.disabled=true;if(oi===q.a)o.classList.add('correct');else if(oi===chosen&&chosen!==q.a)o.classList.add('wrong');
+  });
+  document.querySelector('.exp').classList.add('show');
+}
+
+function drillNav(dir){
+  const n=idx+dir;
+  if(n<0||n>=pool.length){if(dir>0&&idx===pool.length-1)drillDone();return;}
+  drillMultiSel=[];idx=n;renderDrill();window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function drillDone(){
+  let correct=0;
+  Object.entries(answered).forEach(([i,a])=>{
+    const q=pool[i];const qt=q.type||'mcq';
+    if(qt==='fill'){if(a&&a.ok)correct++;}
+    else if(qt==='multi'){const aset=new Set(q.a),uset=new Set(a||[]);if(aset.size===uset.size&&[...aset].every(x=>uset.has(x)))correct++;}
+    else if(a===q.a)correct++;
+  });
+  const pct=Math.round(correct/pool.length*100);
+  document.getElementById('drillQArea').innerHTML=`
+    <div class="card center mt8 mb16">
+      <div style="font-size:48px;font-weight:900;color:${pct>=80?'var(--green)':'var(--red)'}" aria-label="${correct} out of ${pool.length}">${correct}/${pool.length}</div>
+      <div style="font-size:20px;font-weight:700;margin:6px 0">${pct}% on ${selectedSection}</div>
+      <p class="muted small mb16">${pct>=80?'Section mastered! 🎉':'Keep drilling — aim for 80%+ before moving on.'}</p>
+      <div class="btn-row" style="justify-content:center">
+        <button class="btn accent" onclick="restartDrill()">🔄 Drill Again</button>
+        <button class="btn outline" onclick="backConfig()">🎯 New Section</button>
+      </div>
+    </div>`;
+  document.getElementById('nextBtn').style.display='none';
+}
+
+window.onload=buildGrid;
+</script>
+</body>
+</html>
