@@ -13,7 +13,6 @@ Open `index.html` and start practising immediately — or use the live site abov
 
 | Mode | Description |
 |------|-------------|
-| 📚 **Theory Reference** | All 19 sections with key objectives, commands, files, and terms. Extracted from the official PDF. |
 | 📖 **Study Mode** | Browse all questions with instant feedback & explanations. Filter by topic, type, or source. No timer. |
 | ⏱ **Exam Simulation** | 40 questions · 60-minute timer · 75% pass threshold. Mirrors the real LPI exam format exactly. |
 | 🎯 **Topic Drill** | Focus on a single section and drill it until you master it. Instant feedback after each answer. |
